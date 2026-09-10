@@ -1,0 +1,44 @@
+[
+  {
+    "crop": "SOYBEANS",
+    "stat": "yield",
+    "state_alpha": "CA",
+    "status": 400,
+    "error": "{\"error\":[\"bad request - invalid query\"]}"
+  },
+  {
+    "crop": "SOYBEANS",
+    "stat": "acres",
+    "state_alpha": "CA",
+    "status": 400,
+    "error": "{\"error\":[\"bad request - invalid query\"]}"
+  },
+  {
+    "crop": "SOYBEANS",
+    "stat": "planted",
+    "state_alpha": "CA",
+    "status": 400,
+    "error": "{\"error\":[\"bad request - invalid query\"]}"
+  },
+  {
+    "crop": "SORGHUM",
+    "stat": "AREA HARVESTED",
+    "state_alpha": "IA",
+    "status": "FILTERED_TO_ZERO",
+    "error": "2067 rows returned but 0 survived year filter 2000-2025"
+  },
+  {
+    "crop": "SORGHUM",
+    "stat": "AREA PLANTED",
+    "state_alpha": "IA",
+    "status": "FILTERED_TO_ZERO",
+    "error": "2088 rows returned but 0 survived year filter 2000-2025"
+  },
+  {
+    "crop": "SORGHUM",
+    "stat": "YIELD",
+    "state_alpha": "IA",
+    "status": "FILTERED_TO_ZERO",
+    "error": "2067 rows returned but 0 survived year filter 2000-2025"
+  }
+]
