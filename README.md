@@ -4,15 +4,6 @@ Master dataset and starter repo for the Delaware State University Smart Agricult
 
 One row is one county, one crop, one year. 253 counties across California, Nebraska, Iowa, and Delaware. Corn grain, soybeans, winter wheat, and grain sorghum, from 2000 to 2025, with weather, drought, soil, and yield on every row.
 
-## Documentation
-
-Start at **[`docs/README.md`](docs/README.md)**. It indexes everything and says which file answers which question.
-
-The two documents that define the dataset:
-
-- [`docs/Technical Implementation Plan.md`](docs/Technical%20Implementation%20Plan.md): what we're building and why
-- [`docs/dataset_specification.md`](docs/dataset_specification.md): every field, formula, and validation check
-
 ## Status
 
 Pre-build. The NASS collection pipeline is written and awaiting run 5; the other three sources are not started. Open work is tracked in [`docs/issues_log.md`](docs/issues_log.md).
