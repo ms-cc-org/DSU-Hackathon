@@ -4,7 +4,7 @@ __pycache__/
 scratch/
 data/raw/
 .claude/
-docs/
+docs1/
 NASS_HANDOVER.md
 notes.py
 test.py
