@@ -23,10 +23,12 @@ def section(title):
 
 
 # Load data
-nass = pd.read_parquet("data/processed/nass/nass_raw.parquet")
-usdm = pd.read_parquet("data/processed/drought/drought_weekly.parquet")
-acis = pd.read_parquet("data/processed/acis/weather_daily.parquet")
-soil = pd.read_parquet("data/processed/soil/soil_county.parquet")
+_ROOT = Path(__file__).resolve().parents[2]
+
+nass = pd.read_parquet(_ROOT / "data/processed/nass/nass_raw.parquet")
+usdm = pd.read_parquet(_ROOT / "data/processed/drought/drought_weekly.parquet")
+acis = pd.read_parquet(_ROOT / "data/processed/acis/weather_daily.parquet")
+soil = pd.read_parquet(_ROOT / "data/processed/soil/soil_county.parquet")
 
 
 #

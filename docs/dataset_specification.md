@@ -11,7 +11,7 @@
 | Crops | CORN, SOYBEANS, WHEAT, SORGHUM |
 | Row universe | All 26 years for every county-crop pair with at least 1 NASS record for any of the 3 statistics (yield, acres planted, acres harvested) in 2000 to 2025 |
 | Expected rows | Roughly 17,000. The dataset is sparse: about 65% of the 26,312 theoretical county-crop-year combinations exist (253 counties x 4 crops x 26 years), because many county-crop pairs have no NASS observations. Teams should design for a sparse matrix |
-| Student output | data/master\_dataset.csv, data/master\_dataset.parquet, and data/failures\_log.csv |
+| Student output | data/master\_dataset.csv, data/master\_dataset.parquet |
 | Backbone | Census 2020 county file |
 
 # 2\. Crop filters
@@ -186,7 +186,7 @@ None of these is a zero. None should be imputed.
 | V14 | Drought ranges | max\_drought\_severity in {0,1,2,3,4,5}. mean\_dsci in \[0, 500\]. weeks\_in\_d2\_plus \<= weeks in the window.  |
 | V15 | Weather plausibility  | precip\_mm \>= 0\. gdd \>= 0\. tavg\_c in \[-5,35\], a right range for 4 states based on all seasons. Per crop GDD upper bounds should be derived rather than assumptions: window days x (T\_cap \- T\_base). This will give corn 3060, soybeans 3680, winter wheat 7878, sorghum 4253 |
 | V16 | Acreage consistency | acres\_harvested \<= acres\_planted wherever both are non-null |
-| V17 | Known gaps present | Zero non-null SOYBEANS yields in CA. Zero non-null SORGHUM yields in IA. Both cross-referenced to the failures\_log.csv (a mandatory deliverable that records every dropped row and the reason for exclusion). |
+| V17 | Known gaps present | Zero non-null SOYBEANS yields in CA. Zero non-null SORGHUM yields in IA. Both cross-referenced to the per-source failure logs in data/processed/ (e.g. nass\_failures.json). |
 | V18 | yield\_status | yield\_status \= reported implies yield\_per\_acre is non-null, and suppressed or not\_reported implies it is null |
 
 # 7\. Known limitations, for the data dictionary

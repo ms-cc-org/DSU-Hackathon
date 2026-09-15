@@ -118,7 +118,7 @@ All weather fields are aggregated over the crop's growing-season window (see "Se
 | Corn | 10 | 30 |
 | Soybeans | 10 | 30 |
 | Winter wheat | 0 | 26 |
-| Grain sorghum | 10 | 38 |
+| Grain sorghum | 10 | 37.8 |
 
 ### Drought (3 fields, from U.S. Drought Monitor)
 
@@ -241,8 +241,6 @@ The pipeline is in `src/build/`. Each script is self-contained, caches every API
 | `build_master.py` | All 4 parquets above | `data/master_dataset.csv` + `.parquet` |
 
 The master build passed 25 internal validation checks and 29 ground-truth checks (spot-checked against known NASS yields, known drought events, known temperature ranges, and known soil geography).
-
-Design decisions for every pipeline are documented in `docs/decisions/`.
 
 ---
 

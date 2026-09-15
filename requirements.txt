@@ -1,0 +1,12 @@
+#data
+pandas>=2.2
+numpy>=2.0
+pyarrow>=17.0          # parquet read/write
+
+#app
+streamlit>=1.38
+plotly>=5.24           # interactive charts in streamlit
+
+#pipeline rebuild only
+requests>=2.32
+python-dotenv>=1.0     # .env file for NASS API key
