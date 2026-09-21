@@ -22,3 +22,6 @@ def load_nass_raw():
 def load_soil():
     # Static soil properties — one row per county
     return pd.read_parquet(_ROOT / "data/processed/soil/soil_county.parquet")
+
+def load_modis():
+    return pd.read_parquet(_ROOT / "data/processed/modis/modis_ndvi_county.parquet")

@@ -197,8 +197,88 @@ The master CSV is built from 4 source datasets. The daily and weekly panels are 
 | `data/processed/drought/drought_weekly.parquet` | Weekly D0–D4 percentages and DSCI for every county, 2000–2025 | 348,634 | `fips` + `map_date` |
 | `data/processed/nass/nass_raw.parquet` | NASS yield, harvested acres, planted acres in long format | 35,067 | `fips` + `crop` + `year` |
 | `data/processed/soil/soil_county.parquet` | Static soil properties per county | 253 | `fips` |
+| `data/processed/modis/modis_ndvi_county.parquet` | Annual MODIS NDVI/EVI per county (extension) | 5,980 | `fips` + `year` |
 
 **When to use the panels instead of the master:** if you want to define your own season windows, look at sub-seasonal patterns (was the drought early or late in the season?), compute your own GDD parameters, or examine daily weather extremes. The master aggregates these panels into one row per county-crop-year. The panels give you the daily and weekly resolution to disaggregate.
+
+---
+
+## Extension dataset: MODIS vegetation indices
+
+The master dataset measures agriculture from the ground: yield surveys, weather stations, drought classifications, and soil maps. The MODIS extension adds a view from space — what satellites actually observe about vegetation health across each county.
+
+**Source:** NASA MODIS/Terra Vegetation Indices (MOD13Q1 v061), 250-metre resolution, 16-day composites, extracted via Google Earth Engine. Covers the same 230 counties and 26 years as the master dataset.
+
+**File:** `data/processed/modis/modis_ndvi_county.parquet` (5,980 rows - one row per county per year)
+
+**How to load:**
+
+```python
+from src.data_loader import load_modis
+
+modis = load_modis()          # 5,980 rows x 10 columns, fips is already a string
+```
+
+**How to join with the master:** The extension joins on `fips + year`. Because it has no crop dimension, every master row for a given county-year maps to the same MODIS row. Use a left join:
+
+```python
+from src.data_loader import load_master, load_modis
+
+master = load_master()
+modis  = load_modis()
+
+combined = master.merge(modis, on=["fips", "year"], how="left", suffixes=("", "_modis"))
+```
+
+### Extension fields (10 fields, zero nulls)
+
+#### Identity (4 fields)
+
+| Field | Type | Description |
+|---|---|---|
+| `fips` | String, 5 chars | County FIPS code, same as master. Join key. |
+| `county_name` | String | County name from Census 2020. |
+| `state_alpha` | String, 2 chars | State abbreviation. One of `CA`, `DE`, `IA`, `NE`. |
+| `year` | Integer | Calendar year, 2000 to 2025. |
+
+#### Vegetation indices (6 fields)
+
+| Field | Type | Range | Description |
+|---|---|---|---|
+| `ndvi_mean` | Float | 0 to 1 | Mean Normalized Difference Vegetation Index across the county for the calendar year. Computed as the temporal mean of all 16-day composites, then averaged across all 250 m pixels in the county. Higher = greener. Iowa cropland in summer is typically 0.4–0.6. California desert counties sit around 0.15. |
+| `ndvi_max` | Float | 0 to 1 | Maximum NDVI — the peak greenness value observed in any 16-day composite during the year, averaged across the county's pixels. This captures peak growing-season vegetation regardless of when it occurs. |
+| `evi_mean` | Float | 0 to ~0.9 | Mean Enhanced Vegetation Index. EVI corrects for atmospheric effects and soil background better than NDVI in dense-canopy areas. In practice, EVI tracks NDVI closely but with lower saturation in high-biomass regions. |
+| `evi_max` | Float | 0 to ~0.9 | Maximum EVI over the year. Same relationship to `evi_mean` as `ndvi_max` to `ndvi_mean`. |
+| `ndvi_anomaly_pct` | Float | Percent | How far this year's county NDVI deviates from the county's 26-year mean. `(ndvi_mean − county_mean) / county_mean × 100`. Positive = greener than average. Analogous to the master dataset's `yield_anomaly_pct`, but measuring satellite-observed greenness rather than surveyed yield. |
+| `peak_ndvi_doy` | Integer | 1 to 366 | Day of year when peak NDVI was observed, averaged across the county's pixels. California counties peak around DOY 145 (late May, irrigated crops). Iowa and Nebraska peak around DOY 205–213 (late July, corn and soybeans at full canopy). A county with an unusually late or early peak may be under stress. |
+
+### What the extension adds
+
+The master dataset tells you what happened to yield — after the season is over. MODIS tells you what the satellite saw while it was happening. This opens a different class of analysis:
+
+- **Yield prediction from greenness.** Is `ndvi_max` a useful predictor of `yield_per_acre`? If a team can demonstrate that satellite greenness predicts yield before harvest, that's a real operational tool.
+- **Drought verification.** The USDM drought fields are based on expert classification. NDVI anomaly is a direct physical measurement. Do they agree? When they differ, which one better predicts yield loss?
+- **Irrigation detection.** California counties have high NDVI despite having low precipitation. If a team plots `precip_mm` against `ndvi_mean` and sees California as a clear outlier, they've rediscovered irrigation from satellite data.
+
+### How the extension differs from the master dataset
+
+These are design differences, not defects. They exist because satellite data and survey data measure different things.
+
+| Aspect | Master dataset | MODIS extension |
+|---|---|---|
+| **Observation unit** | County × crop × year | County × year (no crop dimension) |
+| **What it measures** | Surveyed yield, weather, drought severity, soil | Satellite-observed vegetation greenness |
+| **Temporal resolution** | Seasonal aggregates from daily/weekly sources | Annual aggregates from 16-day composites |
+| **Spatial resolution** | County-level (from station/grid data) | County-level (from 250 m satellite pixels) |
+| **Land cover** | Crop-specific (corn, soybeans, wheat, sorghum) | All vegetation in the county (crops, forests, grasslands, developed land) |
+
+The most important disparity is the **lack of a crop dimension**. MODIS sees all vegetation in the county, not individual crop fields. A county that is 40% corn, 30% soybeans, and 30% forest will have an NDVI that blends all three. This means:
+
+1. **NDVI anomaly and yield anomaly will not match perfectly.** A drought that destroys corn yield might not move county-wide NDVI much if the county is heavily forested and the forest holds up. This is a real signal, not a flaw — it tells you how much of the county's vegetation is affected.
+
+2. **Joining on `fips + year` duplicates the MODIS row across crops.** When you merge with the master, every crop in a county-year gets the same NDVI value. That's correct — the satellite saw the same county — but keep it in mind when modelling.
+
+3. **The temporal window is the full calendar year, not the crop's growing season.** The master's weather and drought fields use crop-specific season windows (May–Sep for corn, Sep–Jun for wheat). The MODIS extension uses January through December. Teams wanting season-specific NDVI can compute it from the 16-day composites using the GEE pipeline in `src/build/MODIS_gee_pull.py`.
 
 ---
 
@@ -225,6 +305,10 @@ These are real constraints, not defects. They're listed here so you can design a
 9. **`extreme_heat_days` is near zero for wheat.** The September-to-June window rarely reaches 35°C. The field is correct but uninformative for wheat. Focus on GDD or precipitation anomaly for wheat analysis.
 
 10. **USDM starts January 4, 2000.** Wheat year 2000 is missing the September–December 1999 portion of its drought window. Those 3 drought fields are NaN.
+
+11. **MODIS NDVI is county-wide, not crop-specific.** The satellite sees all vegetation in a county — crops, forests, grasslands, developed land. A county where forests mask crop stress will show a weaker NDVI anomaly than `yield_anomaly_pct` suggests. This is a property of satellite observation, not a data error.
+
+12. **MODIS temporal window is the calendar year.** The master dataset aggregates weather and drought over crop-specific growing seasons. The MODIS extension aggregates NDVI and EVI over January through December.
 
 ---
 
@@ -268,4 +352,5 @@ Question 6 is the most defensible analysis a team can present. It separates what
 | U.S. Drought Monitor | REST API, no key needed | [droughtmonitor.unl.edu](https://droughtmonitor.unl.edu/data-maps-tools/us-drought-monitor) |
 | USDA NRCS Soil Data Access | SQL-over-HTTP, no key | [sdmdataaccess.nrcs.usda.gov](https://sdmdataaccess.nrcs.usda.gov/) |
 | DSCI definition | — | [NDMC fact sheet](https://droughtmonitor.unl.edu/data/docs/DSCI_fact_sheet.pdf) |
+| NASA MODIS MOD13Q1 v061 | Google Earth Engine | [LP DAAC product page](https://lpdaac.usgs.gov/products/mod13q1v061/) |
 | Season windows | — | [USDA Usual Planting and Harvesting Dates](https://swat.tamu.edu/media/90113/crops-typicalplanting-harvestingdates-by-states.pdf) |

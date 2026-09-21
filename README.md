@@ -18,6 +18,8 @@ One row is one county, one crop, one year.
 - **21 fields** covering yield, weather, drought, and soil
 - **17,056 rows**
 
+There is also an **extension dataset** with satellite-derived vegetation indices (NDVI and EVI) from NASA MODIS, covering the same counties and years. It joins on `fips + year` and adds a remote-sensing signal that complements the ground-level weather and yield data. See the extension section in the data dictionary for details and caveats.
+
 Every field is documented in [`data/data_dictionary.md`](data/data_dictionary.md). Read it before you start — it explains what every NaN means, what the season windows are, and what the known limitations are.
 
 ## Quick start
@@ -51,12 +53,13 @@ df = load_master()          # 17,056 rows x 21 columns, fips is already a string
 Or load the raw panels for finer resolution:
 
 ```python
-from src.data_loader import load_nass_raw, load_daily_weather, load_weekly_drought, load_soil
+from src.data_loader import load_nass_raw, load_daily_weather, load_weekly_drought, load_soil, load_modis
 
 nass    = load_nass_raw()         # 35K rows, yield/acres in long format per county
 weather = load_daily_weather()    # 2.5M rows, daily tmax/tmin/precip per county
 drought = load_weekly_drought()   # 349K rows, weekly D0-D4 per county
 soil    = load_soil()             # 253 rows, one per county (static)
+modis   = load_modis()            # 5,980 rows, annual NDVI/EVI per county (extension)
 ```
 
 If you prefer to load directly without the helper:
@@ -84,6 +87,7 @@ data/
 └── processed/                  source parquets (for advanced teams)
     ├── acis/                   daily county weather, 1999–2025
     ├── drought/                weekly drought severity, 2000–2025
+    ├── modis/                  annual NDVI/EVI per county (extension)
     ├── nass/                   crop yield and acreage
     └── soil/                   county soil properties (static)
 
@@ -125,6 +129,7 @@ These directions are starting points. Pick one, combine them, or go somewhere el
 | [NOAA ACIS GridData](https://docs.rcc-acis.org/acisws/) | Daily precipitation, temperature | No key |
 | [U.S. Drought Monitor](https://droughtmonitor.unl.edu/) | Weekly drought severity (D0–D4) | No key |
 | [USDA NRCS Soil Data Access](https://sdmdataaccess.nrcs.usda.gov/) | Soil water capacity, productivity | No key |
+| [NASA MODIS MOD13Q1 v061](https://lpdaac.usgs.gov/products/mod13q1v061/) | Satellite vegetation indices (NDVI, EVI) | GEE (free) |
 
 All sources are public federal data. The master dataset and all processed files are included in the repo — no API calls needed to start working.
 
