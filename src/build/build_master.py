@@ -526,6 +526,18 @@ check("V12 DSCI in [0, 500]",
       (dsci_vals >= 0).all() and (dsci_vals <= 500).all(),
       f"[{dsci_vals.min():.1f}, {dsci_vals.max():.1f}]")
 
+# V14 — no duplicate weekly maps, and weeks_in_d2_plus never exceeds the maps in that crop-season
+SEASON_WEEKS = {"CORN": ((5, 1), (9, 30), 0), "SOYBEANS": ((5, 1), (10, 31), 0),
+                "SORGHUM": ((6, 1), (10, 31), 0), "WHEAT": ((9, 1), (6, 30), -1)}
+map_dates = pd.Series(sorted(usdm["map_date"].unique()))
+n_weeks = pd.DataFrame(
+    [(c, y, int(map_dates.between(pd.Timestamp(y + off, sm, sd), pd.Timestamp(y, em, ed)).sum()))
+     for c, ((sm, sd), (em, ed), off) in SEASON_WEEKS.items() for y in range(2000, 2026)],
+    columns=["crop", "year", "n_weeks"])
+too_many = master.merge(n_weeks, on=["crop", "year"]).query("weeks_in_d2_plus > n_weeks")
+check("V14 no duplicate USDM weeks", usdm.duplicated(["fips", "map_date"]).sum() == 0)
+check("V14 weeks_in_d2_plus ≤ weeks in season", len(too_many) == 0, f"{len(too_many)} rows")
+
 # V13 — wheat cross-year
 wheat_2000 = master[(master["crop"] == "WHEAT") & (master["year"] == 2000)]
 if len(wheat_2000):

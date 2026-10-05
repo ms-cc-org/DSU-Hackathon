@@ -12,9 +12,9 @@
   "final_rows": 17056,
   "final_columns": 21,
   "validation": {
-    "passed": 25,
+    "passed": 27,
     "failed": 0,
-    "total": 25
+    "total": 27
   },
-  "timestamp": "2026-09-11T13:52:55.494746"
+  "timestamp": "2026-10-05T15:15:09.648645"
 }

@@ -32,10 +32,11 @@ soil = pd.read_parquet(_ROOT / "data/processed/soil/soil_county.parquet")
 
 
 #
-section("NASS: Are the yield numbers correct or not?")
-# V19 check: county yields, weighted by harvested acres, should approximate the published state yield within 10%.
-# Ground truth: NASS state-level yields are a separate, independent estimate — not the sum of county estimates. If our county data has
-# the wrong crop filter, wrong units, or duplicate rows, the weighted mean will diverge
+section("NASS: Do yield numbers fall within expected ranges?")
+# Sanity check: county yields, weighted by harvested acres, should land in historically typical ranges.
+# These are plausibility checks against well-known production benchmarks — not direct comparisons to
+# published state-level estimates (which are a separate, independent NASS product). If our county data has
+# the wrong crop filter, wrong units, or duplicate rows, the weighted mean will fall outside these ranges.
 
 yield_df = nass[nass["statistic"] == "YIELD"][["fips", "year", "crop", "state_abbr", "value"]].copy()
 yield_df = yield_df.rename(columns={"value": "yield_val"})
@@ -53,10 +54,10 @@ state_yields = (
     .reset_index(name="weighted_yield")
 )
 
-# Spot-check against well-known NASS state yields:
+# Plausibility ranges based on typical NASS state yields:
 # Iowa corn ~180 bu/acre (recent years), Nebraska corn ~175-185,
 # Iowa soybeans ~50-55, Nebraska soybeans ~50-55
-# These are ballpark — if we're off by 2x, something is very wrong.
+# These are wide bands — if we're outside them, something is wrong with the data.
 
 spot_checks = [
     ("IA", "CORN", 2020, 170, 210, "Iowa corn 2020 should be ~178-195"),
@@ -360,4 +361,4 @@ if failed > 0:
             if detail:
                 print(f" {detail}")
 else:
-    print("  All ground-truth checks passed.")
+    print("  All sanity checks passed.")

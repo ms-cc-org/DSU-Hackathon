@@ -26,10 +26,22 @@ Every field is documented in [`data/data_dictionary.md`](data/data_dictionary.md
 
 ### 1. Install
 
+**macOS / Linux:**
 ```bash
-git clone <repo-url>
-cd DSU_HACKATHON
-pip install -r requirements.txt
+git clone https://github.com/ms-cc-org/DSU-Hackathon.git
+cd DSU-Hackathon
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install -r requirements.txt
+```
+
+**Windows:**
+```bash
+git clone https://github.com/ms-cc-org/DSU-Hackathon.git
+cd DSU-Hackathon
+py -3.12 -m venv .venv
+.venv\Scripts\Activate.ps1
+python -m pip install -r requirements.txt
 ```
 
 ### 2. Run the app
@@ -94,7 +106,7 @@ data/
 src/
 ├── data_loader.py              load_master(), load_nass_raw(), load_daily_weather(), etc.
 └── build/                      pipelines that built the dataset (reference only)
-    └── validate_sources.py     ground-truth checks across all 4 sources
+    └── validate_sources.py     sanity checks across all 4 sources
 
 docs/
 ├── dataset_specification.md    technical build contract — fields, filters, formulas

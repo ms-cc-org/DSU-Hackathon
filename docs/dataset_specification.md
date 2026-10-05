@@ -10,7 +10,7 @@
 | Years | 2000 to 2025 |
 | Crops | CORN, SOYBEANS, WHEAT, SORGHUM |
 | Row universe | All 26 years for every county-crop pair with at least 1 NASS record for any of the 3 statistics (yield, acres planted, acres harvested) in 2000 to 2025 |
-| Expected rows | Roughly 17,000. The dataset is sparse: about 65% of the 26,312 theoretical county-crop-year combinations exist (253 counties x 4 crops x 26 years), because many county-crop pairs have no NASS observations. Teams should design for a sparse matrix |
+| Expected rows | Roughly 17,000. The dataset is sparse: about 65% of the 26,312 theoretical county-crop-year combinations exist (230 counties x 4 crops x 26 years), because many county-crop pairs have no NASS observations. Teams should design for a sparse matrix |
 | Student output | data/master\_dataset.csv, data/master\_dataset.parquet |
 | Backbone | Census 2020 county file |
 
@@ -101,7 +101,7 @@ Four things about this request are load-bearing:
 * area\_reduce is what produces county values. GridData has no county key, and loc takes a lon/lat point rather than a FIPS code. There is no county\_sum, so seasonal precipitation is a daily county\_mean summed across days.  
 * Output is JSON. GridData does not offer CSV.
 
-Grid 1 is interpolated, so there are no missing days and no M or T flags. Coverage is asserted rather than tolerated: every county-crop-year must have a day count equal to its window length.  
+Grid 1 has almost no gaps: 30 county-days of missing temperature in 5 coastal California counties; season aggregates skip them and no M or T flags. Coverage is asserted rather than tolerated: every county-crop-year must have a day count equal to its window length.  
 tavg\_c is computed as the mean of daily (tmax \+ tmin) / 2 rather than requesting the avgt element, so all temperature fields share one definition and the pipeline doesn't depend on avgt being served on grid 1\.
 
 | Field | Calculation |
@@ -160,7 +160,7 @@ One table, because this is what students get wrong.
 | yield\_per\_acre NaN, yield\_status \= suppressed | NASS withheld it. Too few farms in that county to publish without disclosing an individual operation. |
 | yield\_per\_acre NaN, yield\_status \= not\_reported | NASS published no estimate for that county-crop-year. |
 | No row at all for a county-crop | That crop has no NASS county record in this state across 2000 to 2025\. California soybeans is a known case. |
-| Rows exist but yield\_per\_acre is always NaN.  | NASS publishes acreage without a county yield estimate. Iowa sorghum yield is a known case. |
+| Rows exist but yield\_per\_acre is always NaN.  | NASS publishes acreage without a county yield estimate. |
 | Drought fields NaN on a WHEAT year 2000 row | The season starts Sep 1999 and the USDM archive starts Jan 2000\. |
 | Soil fields NaN | The county has incomplete SSURGO coverage. |
 

@@ -86,7 +86,7 @@ For the pairs that do exist, every year from 2000 to 2025 is present. If NASS pu
 |---|---|---|---|
 | `yield_per_acre` | Float | Bushels per acre | County yield from NASS Quick Stats. NaN when not reported or suppressed. Never zero — a zero yield is a NASS suppression code, not an observation. All 4 crops use the same unit. |
 | `yield_status` | String | — | Why the yield is or isn't there. `reported` = NASS published a number. `suppressed` = NASS withheld it (too few farms to disclose). `not_reported` = NASS published nothing for this county-crop-year. Never null. |
-| `acres_planted` | Float | Acres | County acres planted. Available for soybeans and wheat. NASS does not publish county-level planted acres for corn or sorghum, so those are NaN by design, not by error. |
+| `acres_planted` | Float | Acres | County acres planted. Available for soybeans and wheat. Available when NASS published it: most corn and soybean rows, about half of wheat, a minority of sorghum. |
 | `acres_harvested` | Float | Acres | County acres harvested. When both planted and harvested are present, the difference is abandonment — the most direct drought-impact signal NASS publishes. |
 | `yield_anomaly_pct` | Float | Percent | How far this year's yield deviates from the county's 26-year trend. Positive = above trend, negative = below. Computed as an OLS residual divided by the fitted value, so it removes the secular rise from genetics and technology. NaN when the county-crop pair has fewer than 10 reported yields (trend is too unstable) or when yield itself is NaN. |
 
@@ -127,7 +127,7 @@ All drought fields are aggregated over the crop's growing-season window. Source 
 | Field | Type | Range | Description |
 |---|---|---|---|
 | `max_drought_severity` | Integer | 0–5 | Worst drought category observed in any week of the season, where more than 1% of the county was affected. 0 = no drought, 1 = D0 (abnormally dry), 2 = D1 (moderate), 3 = D2 (severe), 4 = D3 (extreme), 5 = D4 (exceptional). Note: this scale is offset by 1 from the USDM's own D0–D4 labels. |
-| `weeks_in_d2_plus` | Integer | 0–43 | Number of weeks during the season where severe drought or worse (D2 + D3 + D4) covered more than 1% of the county. A quick measure of drought duration. |
+| `weeks_in_d2_plus` | Integer | 0–43 | 0 to the number of weeks in the season: corn and sorghum ≤ 22, soybeans ≤ 27, winter wheat ≤ 44 |
 | `mean_dsci` | Float | 0–500 | Mean weekly Drought Severity and Coverage Index over the season. Computed as `D0×1 + D1×2 + D2×3 + D3×4 + D4×5` using categorical (non-overlapping) percentages. 0 means no drought all season. 500 means the entire county was in D4 every week. |
 
 **Do not confuse the scales.** `max_drought_severity` is 0–5. `mean_dsci` is 0–500. They are not the same thing and neither is a percentage.
@@ -181,7 +181,7 @@ NaN is not zero. Do not fill it with zero. Do not drop it without understanding 
 | `yield_per_acre` is NaN, `yield_status` = `suppressed` | NASS measured it but withheld the number. Too few farms in that county to publish without revealing an individual operation's data. | Leave as NaN. Use `acres_harvested` if you need to know the crop was grown. |
 | `yield_per_acre` is NaN, `yield_status` = `not_reported` | NASS published no estimate for that county-crop-year. The crop may not have been grown, or NASS didn't survey it. | Leave as NaN. The row exists so your time series is complete. |
 | No row at all for a county-crop combination | That crop has no NASS record in this state for the entire 2000–2025 window. | Nothing to do. California soybeans and Iowa sorghum are the known cases. |
-| `acres_planted` is NaN for corn or sorghum | NASS does not publish county-level planted acres for corn or sorghum. This is a data limitation, not a pipeline error. | Use `acres_harvested` instead. Planted acres are available for soybeans and wheat. |
+| `acres_planted` is NaN for corn or sorghum | Available when NASS published it: most corn and soybean rows, about half of wheat, a minority of sorghum. | Planted acres are available for soybeans and wheat. |
 | Drought fields are NaN, row is `WHEAT` year `2000` | The wheat season starts September 1, 1999. The USDM archive starts January 4, 2000. Only about 25 of the 43 season weeks have drought data. We set all 3 fields to NaN rather than publish a value from 58% of a season. | Exclude wheat year 2000 from drought analysis or note it as incomplete. Weather is complete for this row. |
 | `yield_anomaly_pct` is NaN but `yield_per_acre` is not | The county-crop pair has fewer than 10 reported yields across 2000–2025. The trend is too unstable to detrend meaningfully. | Exclude from anomaly-based analysis. You can still use raw `yield_per_acre`. |
 
@@ -324,7 +324,7 @@ The pipeline is in `src/build/`. Each script is self-contained, caches every API
 | `SSURGO_data_pull.py` | NRCS Soil Data Access | `data/processed/soil/soil_county.parquet` |
 | `build_master.py` | All 4 parquets above | `data/master_dataset.csv` + `.parquet` |
 
-The master build passed 25 internal validation checks and 29 ground-truth checks (spot-checked against known NASS yields, known drought events, known temperature ranges, and known soil geography).
+The master build passed 26 internal validation checks and 29 ground-truth checks (spot-checked against known NASS yields, known drought events, known temperature ranges, and known soil geography).
 
 ---
 
