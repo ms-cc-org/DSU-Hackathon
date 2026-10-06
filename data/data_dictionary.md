@@ -53,7 +53,7 @@ For the pairs that do exist, every year from 2000 to 2025 is present. If NASS pu
 | State | Counties | Rows | Why it matters |
 |---|---|---|---|
 | California | 37 | 2,158 | Irrigated. Yield-to-precipitation relationship is weak. |
-| Delaware | 3 | 312 | Small, rainfed. Complete and easy to reason about. |
+| Delaware | 3 | 312 | Small, rainfed. Corn reported every year, soybeans almost every year; wheat and sorghum stop early. |
 | Iowa | 99 | 5,876 | Rainfed. Best agricultural soil in the US. |
 | Nebraska | 91 | 8,710 | Mixed irrigation. Has all 4 crops. Largest coverage. |
 
@@ -65,6 +65,29 @@ For the pairs that do exist, every year from 2000 to 2025 is present. If NASS pu
 | Soybeans | 183 | 4,758 | Not grown in California. |
 | Winter wheat | 150 | 3,900 | Sparse in Iowa (28 counties). |
 | Grain sorghum | 99 | 2,574 | Mostly Nebraska. No Iowa data post-2000. |
+
+**Counties with a reported yield, by year:**
+
+A row exists for every year, but `yield_per_acre` is filled only where NASS published a county yield: 68% of rows. NASS folds counties with too few reporting farms into a district total, and some crops shrank over time.
+
+| State, crop | Counties | 2000 | 2005 | 2010 | 2015 | 2020 | 2025 |
+|---|---|---|---|---|---|---|---|
+| California corn | 31 | 24 | 18 | 8 | 7 | 0 | 0 |
+| California sorghum | 18 | 0 | 8 | 0 | 0 | 0 | 0 |
+| California winter wheat | 34 | 32 | 24 | 17 | 9 | 11 | 6 |
+| Delaware corn | 3 | 3 | 3 | 3 | 3 | 3 | 3 |
+| Delaware sorghum | 3 | 2 | 0 | 0 | 0 | 0 | 0 |
+| Delaware soybeans | 3 | 3 | 3 | 3 | 3 | 3 | 3 |
+| Delaware winter wheat | 3 | 3 | 3 | 0 | 0 | 0 | 0 |
+| Iowa corn | 99 | 99 | 99 | 99 | 95 | 95 | 79 |
+| Iowa soybeans | 99 | 99 | 99 | 99 | 97 | 86 | 73 |
+| Iowa winter wheat | 28 | 6 | 14 | 0 | 0 | 0 | 0 |
+| Nebraska corn | 91 | 91 | 90 | 87 | 78 | 83 | 46 |
+| Nebraska sorghum | 78 | 56 | 48 | 24 | 9 | 8 | 6 |
+| Nebraska soybeans | 81 | 79 | 77 | 73 | 62 | 69 | 36 |
+| Nebraska winter wheat | 85 | 64 | 75 | 65 | 48 | 47 | 32 |
+
+The well-covered core is **Iowa and Nebraska corn and soybeans**, plus Nebraska wheat. California, Delaware, sorghum, and Iowa/Delaware wheat are thin, especially after 2010: use them as contrasts and check your sample size before drawing conclusions. Recent years are thinner everywhere.
 
 ---
 
@@ -86,7 +109,7 @@ For the pairs that do exist, every year from 2000 to 2025 is present. If NASS pu
 |---|---|---|---|
 | `yield_per_acre` | Float | Bushels per acre | County yield from NASS Quick Stats. NaN when not reported or suppressed. Never zero — a zero yield is a NASS suppression code, not an observation. All 4 crops use the same unit. |
 | `yield_status` | String | — | Why the yield is or isn't there. `reported` = NASS published a number. `suppressed` = NASS withheld it (too few farms to disclose). `not_reported` = NASS published nothing for this county-crop-year. Never null. |
-| `acres_planted` | Float | Acres | County acres planted. Available for soybeans and wheat. Available when NASS published it: most corn and soybean rows, about half of wheat, a minority of sorghum. |
+| `acres_planted` | Float | Acres | County acres planted. Available when NASS published it: most corn and soybean rows, about half of wheat, a minority of sorghum. |
 | `acres_harvested` | Float | Acres | County acres harvested. When both planted and harvested are present, the difference is abandonment — the most direct drought-impact signal NASS publishes. |
 | `yield_anomaly_pct` | Float | Percent | How far this year's yield deviates from the county's 26-year trend. Positive = above trend, negative = below. Computed as an OLS residual divided by the fitted value, so it removes the secular rise from genetics and technology. NaN when the county-crop pair has fewer than 10 reported yields (trend is too unstable) or when yield itself is NaN. |
 
@@ -127,7 +150,7 @@ All drought fields are aggregated over the crop's growing-season window. Source 
 | Field | Type | Range | Description |
 |---|---|---|---|
 | `max_drought_severity` | Integer | 0–5 | Worst drought category observed in any week of the season, where more than 1% of the county was affected. 0 = no drought, 1 = D0 (abnormally dry), 2 = D1 (moderate), 3 = D2 (severe), 4 = D3 (extreme), 5 = D4 (exceptional). Note: this scale is offset by 1 from the USDM's own D0–D4 labels. |
-| `weeks_in_d2_plus` | Integer | 0–43 | 0 to the number of weeks in the season: corn and sorghum ≤ 22, soybeans ≤ 27, winter wheat ≤ 44 |
+| `weeks_in_d2_plus` | Integer | 0–44 | Number of weeks during the season where severe drought or worse (D2 + D3 + D4) covered more than 1% of the county. A quick measure of drought duration. Maximum depends on season length: corn and sorghum ≤ 22, soybeans ≤ 27, winter wheat ≤ 44. |
 | `mean_dsci` | Float | 0–500 | Mean weekly Drought Severity and Coverage Index over the season. Computed as `D0×1 + D1×2 + D2×3 + D3×4 + D4×5` using categorical (non-overlapping) percentages. 0 means no drought all season. 500 means the entire county was in D4 every week. |
 
 **Do not confuse the scales.** `max_drought_severity` is 0–5. `mean_dsci` is 0–500. They are not the same thing and neither is a percentage.
@@ -181,23 +204,24 @@ NaN is not zero. Do not fill it with zero. Do not drop it without understanding 
 | `yield_per_acre` is NaN, `yield_status` = `suppressed` | NASS measured it but withheld the number. Too few farms in that county to publish without revealing an individual operation's data. | Leave as NaN. Use `acres_harvested` if you need to know the crop was grown. |
 | `yield_per_acre` is NaN, `yield_status` = `not_reported` | NASS published no estimate for that county-crop-year. The crop may not have been grown, or NASS didn't survey it. | Leave as NaN. The row exists so your time series is complete. |
 | No row at all for a county-crop combination | That crop has no NASS record in this state for the entire 2000–2025 window. | Nothing to do. California soybeans and Iowa sorghum are the known cases. |
-| `acres_planted` is NaN for corn or sorghum | Available when NASS published it: most corn and soybean rows, about half of wheat, a minority of sorghum. | Planted acres are available for soybeans and wheat. |
-| Drought fields are NaN, row is `WHEAT` year `2000` | The wheat season starts September 1, 1999. The USDM archive starts January 4, 2000. Only about 25 of the 43 season weeks have drought data. We set all 3 fields to NaN rather than publish a value from 58% of a season. | Exclude wheat year 2000 from drought analysis or note it as incomplete. Weather is complete for this row. |
+| `acres_planted` is NaN | NASS didn't publish planted acres for that county-crop-year. Common for sorghum and wheat. | Leave as NaN. Use `acres_harvested` if you only need to know the crop was grown. |
+| Drought fields are NaN, row is `WHEAT` year `2000` | The wheat season starts September 1, 1999. The USDM archive starts January 4, 2000. Only 26 of the ~43 season weeks have drought data. We set all 3 fields to NaN rather than publish a value from 60% of a season. | Exclude wheat year 2000 from drought analysis or note it as incomplete. Weather is complete for this row. |
 | `yield_anomaly_pct` is NaN but `yield_per_acre` is not | The county-crop pair has fewer than 10 reported yields across 2000–2025. The trend is too unstable to detrend meaningfully. | Exclude from anomaly-based analysis. You can still use raw `yield_per_acre`. |
 
 ---
 
 ## Companion datasets
 
-The master CSV is built from 4 source datasets. The daily and weekly panels are included for teams that want finer resolution.
+The master CSV is built from 4 source datasets. The daily and weekly panels are included for teams that want finer resolution. The panels and boundary file cover all 253 counties in the 4 states; the master has the 230 with NASS data.
 
 | File | What it is | Rows | Join key |
 |---|---|---|---|
 | `data/processed/acis/weather_daily.parquet` | Daily tmax, tmin, precipitation for every county, 1999–2025 | 2,495,086 | `fips` + `date` |
-| `data/processed/drought/drought_weekly.parquet` | Weekly D0–D4 percentages and DSCI for every county, 2000–2025 | 348,634 | `fips` + `map_date` |
+| `data/processed/drought/drought_weekly.parquet` | Weekly D0–D4 percentages and DSCI for every county, 2000–2025 | 343,321 | `fips` + `map_date` |
 | `data/processed/nass/nass_raw.parquet` | NASS yield, harvested acres, planted acres in long format | 35,067 | `fips` + `crop` + `year` |
 | `data/processed/soil/soil_county.parquet` | Static soil properties per county | 253 | `fips` |
 | `data/processed/modis/modis_ndvi_county.parquet` | Annual MODIS NDVI/EVI per county (extension) | 5,980 | `fips` + `year` |
+| `data/counties.geojson` | County boundaries for maps; load with `load_counties()` | 253 | feature `id` = `fips` |
 
 **When to use the panels instead of the master:** if you want to define your own season windows, look at sub-seasonal patterns (was the drought early or late in the season?), compute your own GDD parameters, or examine daily weather extremes. The master aggregates these panels into one row per county-crop-year. The panels give you the daily and weekly resolution to disaggregate.
 
@@ -290,7 +314,7 @@ These are real constraints, not defects. They're listed here so you can design a
 
 2. **Season windows are fixed.** They don't shift by state or year. California corn actually starts in March; these windows start in May. The daily panel ships alongside so you can build better windows if you want to.
 
-3. **Sparse coverage is expected.** California corn has 31 counties, not 58. Iowa wheat has 28 counties, not 99. Delaware sorghum has 3 counties. This is not an error — not every county grows every crop. Small samples are real but require care in analysis.
+3. **Sparse coverage is expected.** California corn has 31 counties, not 58. Iowa wheat has 28 counties, not 99. Delaware sorghum has 3 counties. This is not an error — not every county grows every crop. Small samples are real but require care in analysis. Reported yields also thin out over time; see the coverage table under Row universe.
 
 4. **WHEAT means winter wheat only.** Spring wheat, durum, and other classes are excluded. NASS distinguishes them by `class_desc`.
 
@@ -324,7 +348,7 @@ The pipeline is in `src/build/`. Each script is self-contained, caches every API
 | `SSURGO_data_pull.py` | NRCS Soil Data Access | `data/processed/soil/soil_county.parquet` |
 | `build_master.py` | All 4 parquets above | `data/master_dataset.csv` + `.parquet` |
 
-The master build passed 26 internal validation checks and 29 ground-truth checks (spot-checked against known NASS yields, known drought events, known temperature ranges, and known soil geography).
+The master build passes 27 internal validation checks (`build_master.py`) and 26 sanity checks (`validate_sources.py`: known NASS yields, known drought events, known temperature ranges, and known soil geography).
 
 ---
 

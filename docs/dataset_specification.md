@@ -6,7 +6,7 @@
 | :---- | :---- |
 | Row | One county, one crop, one year |
 | Primary key | (fips, crop, year) |
-| States | CA, NE, IA, DE (253 counties) |
+| States | CA, NE, IA, DE (253 counties in the panels; 230 in the master, those with NASS data) |
 | Years | 2000 to 2025 |
 | Crops | CORN, SOYBEANS, WHEAT, SORGHUM |
 | Row universe | All 26 years for every county-crop pair with at least 1 NASS record for any of the 3 statistics (yield, acres planted, acres harvested) in 2000 to 2025 |

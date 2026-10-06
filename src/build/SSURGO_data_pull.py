@@ -235,13 +235,13 @@ panel = (
     .reset_index(drop=True)
 )
 
-out_path = Path("data/processed/soil_county.parquet")
+out_path = Path("data/processed/soil/soil_county.parquet")
 out_path.parent.mkdir(parents=True, exist_ok=True)
 panel.to_parquet(out_path, index=False)
 print(f"\nSaved {len(panel)} rows -> {out_path}")
 
 if failures:
-    fail_path = Path("data/processed/ssurgo_failures.json")
+    fail_path = Path("data/processed/soil/ssurgo_failures.json")
     with open(fail_path, "w") as f:
         json.dump(failures, f, indent=2)
     print(f"Logged {len(failures)} failures -> {fail_path}")

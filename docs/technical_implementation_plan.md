@@ -16,12 +16,12 @@ The decision problem students are solving: given a county, a crop, and a year, w
 | :---- | :---- |
 | Row definition | One county, one crop, one year |
 | States | California (CA), Nebraska (NE), Iowa (IA), Delaware (DE) |
-| Counties | 253 (CA 58, IA 99, NE 93, DE 3\) |
+| Counties | 253 in the panels (CA 58, IA 99, NE 93, DE 3); 230 in the master (CA 37, IA 99, NE 91, DE 3), those with NASS data |
 | Years | 2000 to 2025 |
 | Crops | Corn grain, Soybeans, Winter wheat, Grain sorghum |
 | Join key | 5-digit FIPS, zero-padded, string |
 | Geographic backbone | Census 2020 county file for the 4 states |
-| Student-facing output | data/master\_dataset.csv, data/master\_dataset.parquet, and data/failures\_log.csv |
+| Student-facing output | data/master\_dataset.csv, data/master\_dataset.parquet, and per-source failure logs in data/processed/\*/\*\_failures.json |
 | Intermediate outputs | Parquet, one per source, plus the daily and weekly panels |
 
 ## 2.1 Crop naming
@@ -42,7 +42,7 @@ NASS spells it SOYBEANS, plural. A query using SOYBEAN returns nothing.
 | :---- | :---- | :---- | :---- |
 | USDA NASS Quick Stats | Yield, acres planted, acres harvested | REST API, free key | County, annual |
 | NOAA ACIS | Daily tmax, tmin, precipitation | REST API, no key | County, daily |
-| U.S. Drought Monitor | Weekly D0 to D4 area coverage | CSV bulk download | County, weekly |
+| U.S. Drought Monitor | Weekly D0 to D4 area coverage | REST API (JSON), no key | County, weekly |
 | USDA NRCS SSURGO | Soil water storage and productivity | Soil Data Access (SDA) API | County, static |
 
 ACIS is a NOAA service that returns county values keyed on FIPS, so weather joins to NASS, drought, and Census with no crosswalk, where nClimGrid keys on NCEI state codes and would need one.
@@ -85,9 +85,9 @@ Fixed windows introduce measurement error in early and late years. This is a rea
 
 | Field | SSURGO source | What it means for a student |
 | :---- | :---- | :---- |
-| aws\_100cm\_mm | valu1.aws0\_100 | Millimetres of plant-available water the top metre of soil can hold. The drought buffer. High value means the soil carries the crop further between rains. |
-| droughty\_pct | valu1.droughty | Percent of county area on drought-vulnerable soil, meaning 152 mm or less of root-zone water storage. A threshold view of the same idea, easier to reason about than a raw millimetre figure. |
-| nccpi\_crop | valu1.nccpi3corn / nccpi3soy / nccpi3sg | National Commodity Crop Productivity Index, 0 to 1, matched to the crop in the row. Inherent soil productivity, independent of weather. |
+| aws\_100cm\_mm | muaggatt.aws0100wta × 10 (valu1 is not in Soil Data Access) | Millimetres of plant-available water the top metre of soil can hold. The drought buffer. High value means the soil carries the crop further between rains. |
+| droughty\_pct | derived: aws0100wta ≤ 15.2 cm | Percent of county area on drought-vulnerable soil, meaning 152 mm or less of root-zone water storage. A threshold view of the same idea, easier to reason about than a raw millimetre figure. |
+| nccpi\_crop | cointerp NCCPI corn / soybeans / small grains submodels | National Commodity Crop Productivity Index, 0 to 1, matched to the crop in the row. Inherent soil productivity, independent of weather. |
 
 ## 
 
@@ -96,7 +96,7 @@ Fixed windows introduce measurement error in early and late years. This is a rea
 | Tier | Contents | Where it lives |
 | :---- | :---- | :---- |
 | Core, 21 fields | the master table | master\_dataset.csv and master\_dataset.parquet |
-| Intermediate panels | daily weather (fips, date, tmax\_c, tmin\_c, precip\_mm) and weekly drought (fips, map\_date, D0 to D4) | weather\_daily.parquet, drought\_weekly.parquet |
+| Intermediate panels | daily weather (fips, date, pcpn\_mm, tmax\_c, tmin\_c) and weekly drought (fips, map\_date, D0 to D4, dsci) | data/processed/acis/weather\_daily.parquet, data/processed/drought/drought\_weekly.parquet |
 | Advanced, not shipped | Cropland Data Layer masks, USGS NWAA irrigation water use, live forecast APIs | teams fetch these themselves |
 
 No field outside the 21 appears in master\_dataset.csv.
@@ -107,7 +107,7 @@ No field outside the 21 appears in master\_dataset.csv.
 
 **The row universe.** The master contains every year from 2000 to 2025 for every county-crop pair that has at least one NASS observation in the window.  
 **Join order.** Census counties is the left table. NASS joins on (fips, crop, year). Weather and drought join on (fips, crop, year) after seasonal aggregation. Soil joins on fips alone and broadcasts across years. Row count is asserted before and after every join, and any dropped row is logged with a reason.  
-The dataset ships with 18 automated checks covering uniqueness, coverage, value ranges, and reconciliation against published NASS state yields.
+The dataset ships with 27 automated checks in build\_master.py (uniqueness, coverage, value ranges) and 26 sanity checks in validate\_sources.py (known yields, drought events, temperatures, soil geography).
 
 # 7\. Research questions the dataset can answer
 
@@ -137,15 +137,12 @@ Question 6 is the one nccpi\_crop makes answerable, and it's the most defensible
 | requirements.txt | project dependencies |
 | data/master\_dataset.csv | the main dataset |
 | data/master\_dataset.parquet | same data, faster access |
-| data/failures\_log.csv | Every row dropped during collection or preprocessing, with the reason |
 | data/data\_dictionary.md | definitions for every field, warning, and known gap |
-| data/weather\_daily.parquet | daily panel for custom windows |
-| data/drought\_weekly.parquet | weekly panel |
+| data/processed/ | source panels: daily weather, weekly drought, NASS, soil, MODIS, and per-source failure logs |
 | data/counties.geojson | simplified boundaries for mapping |
 | notebooks/starter\_notebook.ipynb | starter notebook |
 | src/build/ | the pipeline used to build the datasets |
-| src/data\_loader.py | helper functions: load\_master(), load\_counties(), load\_dictionary() |
-| src/visualization.py | worked examples |
+| src/data\_loader.py | helper functions: load\_master(), load\_daily\_weather(), load\_weekly\_drought(), load\_nass\_raw(), load\_soil(), load\_modis(), load\_counties() |
 | app.py | optional Streamlit scaffold |
 
 # 10\. Event mechanics

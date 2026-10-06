@@ -16,7 +16,7 @@ One row is one county, one crop, one year.
 - **4 crops:** Corn grain, soybeans, winter wheat, grain sorghum
 - **26 years:** 2000–2025
 - **21 fields** covering yield, weather, drought, and soil
-- **17,056 rows**
+- **17,056 rows**, but only 68% have a reported yield. The well-covered core is Iowa and Nebraska corn and soybeans; California, Delaware, sorghum and wheat are thin. See the coverage table in the data dictionary before picking a project.
 
 There is also an **extension dataset** with satellite-derived vegetation indices (NDVI and EVI) from NASA MODIS, covering the same counties and years. It joins on `fips + year` and adds a remote-sensing signal that complements the ground-level weather and yield data. See the extension section in the data dictionary for details and caveats.
 
@@ -25,6 +25,8 @@ Every field is documented in [`data/data_dictionary.md`](data/data_dictionary.md
 ## Quick start
 
 ### 1. Install
+
+You need **Python 3.11 or newer** (3.12 recommended). Check with `python3 --version` (Windows: `py --version`). If it's older, install 3.12 from [python.org](https://www.python.org/downloads/). The `python3` that comes with macOS is 3.9 and won't work.
 
 **macOS / Linux:**
 ```bash
@@ -44,6 +46,10 @@ py -3.12 -m venv .venv
 python -m pip install -r requirements.txt
 ```
 
+If PowerShell says running scripts is disabled, run `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned` once and activate again.
+
+It worked if your prompt starts with `(.venv)`. In every new terminal, `cd DSU-Hackathon` and activate again.
+
 ### 2. Run the app
 
 ```bash
@@ -53,6 +59,10 @@ streamlit run app.py
 The app loads the dataset, gives you sidebar filters for state, crop, and year range, and has a working yield chart in the Overview tab. The other three tabs (Weather & Yield, Drought Analysis, Soil & Risk) are yours to build.
 
 ### 3. Load data in a notebook or script
+
+The starter notebook is at `notebooks/starter_notebook.ipynb`. To run it without installing anything, open it in Google Colab and run the first cell, which fetches the data:
+
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/ms-cc-org/DSU-Hackathon/blob/main/notebooks/starter_notebook.ipynb)
 
 Use the data loader; it handles file paths and types for you:
 
@@ -65,13 +75,14 @@ df = load_master()          # 17,056 rows x 21 columns, fips is already a string
 Or load the raw panels for finer resolution:
 
 ```python
-from src.data_loader import load_nass_raw, load_daily_weather, load_weekly_drought, load_soil, load_modis
+from src.data_loader import load_nass_raw, load_daily_weather, load_weekly_drought, load_soil, load_modis, load_counties
 
 nass    = load_nass_raw()         # 35K rows, yield/acres in long format per county
 weather = load_daily_weather()    # 2.5M rows, daily tmax/tmin/precip per county
-drought = load_weekly_drought()   # 349K rows, weekly D0-D4 per county
+drought = load_weekly_drought()   # 343K rows, weekly D0-D4 per county
 soil    = load_soil()             # 253 rows, one per county (static)
 modis   = load_modis()            # 5,980 rows, annual NDVI/EVI per county (extension)
+counties = load_counties()        # GeoJSON boundaries for maps, feature id = fips
 ```
 
 If you prefer to load directly without the helper:
@@ -90,12 +101,13 @@ df = pd.read_csv("data/master_dataset.csv", dtype={"fips": str})
 
 ```
 app.py                          Streamlit app — run with: streamlit run app.py
-requirements.txt                one pip install, everything works
+requirements.txt                pinned dependencies (app, notebook, modelling)
 
 data/
 ├── master_dataset.csv          the dataset (2.3 MB)
 ├── master_dataset.parquet      same data, smaller and faster (412 KB)
 ├── data_dictionary.md          every field, every warning, every known gap
+├── counties.geojson            county boundaries for maps (253 counties)
 └── processed/                  source parquets (for advanced teams)
     ├── acis/                   daily county weather, 1999–2025
     ├── drought/                weekly drought severity, 2000–2025
