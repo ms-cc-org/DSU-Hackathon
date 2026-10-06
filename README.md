@@ -1,45 +1,168 @@
 # DSU Smart Agriculture Hackathon
 
-Master dataset and starter repo for the Delaware State University Smart Agriculture Hackathon, **October 17 to 18, 2026**.
+**October 17–18, 2026 | Delaware State University | 24 hours**
 
-One row is one county, one crop, one year. 253 counties across California, Nebraska, Iowa, and Delaware. Corn grain, soybeans, winter wheat, and grain sorghum, from 2000 to 2025, with weather, drought, soil, and yield on every row.
+A farming community is facing increasing variability in rainfall, temperature, drought, and growing conditions. Your team has been asked to build a tool that helps an agricultural stakeholder understand these conditions and make a better decision.
 
-## Status
+This repo gives you the data and a working app scaffold. You bring the analysis.
 
-Pre-build. The NASS collection pipeline is written and awaiting run 5; the other three sources are not started. Open work is tracked in [`docs/issues_log.md`](docs/issues_log.md).
+---
 
-## Setup
+## What's in the dataset
+
+One row is one county, one crop, one year.
+
+- **4 states:** California (irrigated), Iowa (rainfed), Nebraska (mixed), Delaware (rainfed, small)
+- **4 crops:** Corn grain, soybeans, winter wheat, grain sorghum
+- **26 years:** 2000–2025
+- **21 fields** covering yield, weather, drought, and soil
+- **17,056 rows**, but only 68% have a reported yield. The well-covered core is Iowa and Nebraska corn and soybeans; California, Delaware, sorghum and wheat are thin. See the coverage table in the data dictionary before picking a project.
+
+There is also an **extension dataset** with satellite-derived vegetation indices (NDVI and EVI) from NASA MODIS, covering the same counties and years. It joins on `fips + year` and adds a remote-sensing signal that complements the ground-level weather and yield data. See the extension section in the data dictionary for details and caveats.
+
+Every field is documented in [`data/data_dictionary.md`](data/data_dictionary.md). Read it before you start — it explains what every NaN means, what the season windows are, and what the known limitations are.
+
+## Quick start
+
+### 1. Install
+
+You need **Python 3.11 or newer** (3.12 recommended). Check with `python3 --version` (Windows: `py --version`). If it's older, install 3.12 from [python.org](https://www.python.org/downloads/). The `python3` that comes with macOS is 3.9 and won't work.
+
+**macOS / Linux:**
+```bash
+git clone https://github.com/ms-cc-org/DSU-Hackathon.git
+cd DSU-Hackathon
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install -r requirements.txt
+```
+
+**Windows:**
+```bash
+git clone https://github.com/ms-cc-org/DSU-Hackathon.git
+cd DSU-Hackathon
+py -3.12 -m venv .venv
+.venv\Scripts\Activate.ps1
+python -m pip install -r requirements.txt
+```
+
+If PowerShell says running scripts is disabled, run `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned` once and activate again.
+
+It worked if your prompt starts with `(.venv)`. In every new terminal, `cd DSU-Hackathon` and activate again.
+
+### 2. Run the app
 
 ```bash
-pip install -r requirements.txt
-cp .env.example .env      # add your NASS API key
+streamlit run app.py
 ```
 
-A free NASS Quick Stats API key comes from [quickstats.nass.usda.gov/api](https://quickstats.nass.usda.gov/api). NOAA ACIS and the U.S. Drought Monitor need no key.
+The app loads the dataset, gives you sidebar filters for state, crop, and year range, and has a working yield chart in the Overview tab. The other three tabs (Weather & Yield, Drought Analysis, Soil & Risk) are yours to build.
 
-Never commit `.env`. It's in `.gitignore` and it stays there.
+### 3. Load data in a notebook or script
 
-## Layout
+The starter notebook is at `notebooks/starter_notebook.ipynb`. To run it without installing anything, open it in Google Colab and run the first cell, which fetches the data:
 
-```
-docs/                   plan, specification, decisions, issues
-data/raw/               archived API responses (gitignored)
-data/processed/         one parquet per source
-data/master/            master_dataset.csv and .parquet
-src/                    pipeline and student utilities
-notebooks/              starter notebook
-```
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/ms-cc-org/DSU-Hackathon/blob/main/notebooks/starter_notebook.ipynb)
 
-## Note on FIPS codes
-
-`fips` is a 5-character string, not a number. California is state FIPS `06`, so reading the CSV without forcing the type turns `06001` into `6001` and silently breaks every join.
+Use the data loader; it handles file paths and types for you:
 
 ```python
-pd.read_csv("data/master/master_dataset.csv", dtype={"fips": str})
+from src.data_loader import load_master
+
+df = load_master()          # 17,056 rows x 21 columns, fips is already a string
 ```
 
-`src/data_loader.py` handles this. The parquet copy preserves the type on its own.
+Or load the raw panels for finer resolution:
+
+```python
+from src.data_loader import load_nass_raw, load_daily_weather, load_weekly_drought, load_soil, load_modis, load_counties
+
+nass    = load_nass_raw()         # 35K rows, yield/acres in long format per county
+weather = load_daily_weather()    # 2.5M rows, daily tmax/tmin/precip per county
+drought = load_weekly_drought()   # 343K rows, weekly D0-D4 per county
+soil    = load_soil()             # 253 rows, one per county (static)
+modis   = load_modis()            # 5,980 rows, annual NDVI/EVI per county (extension)
+counties = load_counties()        # GeoJSON boundaries for maps, feature id = fips
+```
+
+If you prefer to load directly without the helper:
+
+```python
+import pandas as pd
+
+df = pd.read_parquet("data/master_dataset.parquet")
+# or
+df = pd.read_csv("data/master_dataset.csv", dtype={"fips": str})
+```
+
+**Important:** `fips` is a 5-character string, not a number. California is state FIPS `06`. If pandas reads it as an integer, `06001` becomes `6001` and every join silently fails. The parquet format and `data_loader.py` handle this automatically. If you use `read_csv`, pass `dtype={"fips": str}`.
+
+## Repo layout
+
+```
+app.py                          Streamlit app — run with: streamlit run app.py
+requirements.txt                pinned dependencies (app, notebook, modelling)
+
+data/
+├── master_dataset.csv          the dataset (2.3 MB)
+├── master_dataset.parquet      same data, smaller and faster (412 KB)
+├── data_dictionary.md          every field, every warning, every known gap
+├── counties.geojson            county boundaries for maps (253 counties)
+└── processed/                  source parquets (for advanced teams)
+    ├── acis/                   daily county weather, 1999–2025
+    ├── drought/                weekly drought severity, 2000–2025
+    ├── modis/                  annual NDVI/EVI per county (extension)
+    ├── nass/                   crop yield and acreage
+    └── soil/                   county soil properties (static)
+
+src/
+├── data_loader.py              load_master(), load_nass_raw(), load_daily_weather(), etc.
+└── build/                      pipelines that built the dataset (reference only)
+    └── validate_sources.py     sanity checks across all 4 sources
+
+docs/
+├── dataset_specification.md    technical build contract — fields, filters, formulas
+└── technical_implementation_plan.md   scope, state/crop rationale, timeline
+```
+
+## What you can build
+
+These directions are starting points. Pick one, combine them, or go somewhere else entirely.
+
+| Direction | Example |
+|---|---|
+| **WaterWise** | Drought dashboard, irrigation decision tool, water-stress alerts |
+| **CropGuard** | Yield prediction model, risk scoring, early-warning system |
+| **Farm & Environment** | County risk maps, land-use comparison, geographic vulnerability |
+| **AgriAdvisor** | AI assistant grounded in this data, evidence-based recommendations |
+
+## Research questions the data can answer
+
+1. When a county is in D2+ drought during its growing season, how far does yield fall below trend?
+2. Do counties with higher soil water storage (`aws_100cm_mm`) lose less yield in drought years?
+3. In Nebraska, how does corn's drought response differ from sorghum's?
+4. Is precipitation a stronger yield predictor in rainfed Iowa than in irrigated California?
+5. Is there an extreme heat threshold above which yield drops sharply? Does it differ by crop?
+6. Once you control for soil quality (`nccpi_crop`), how much of the yield gap is left for drought to explain?
 
 ## Data sources
 
-USDA NASS Quick Stats, NOAA ACIS, U.S. Drought Monitor (National Drought Mitigation Center), and USDA NRCS SSURGO. Census 2020 county boundaries are the join backbone. All are public federal data; see `docs/dataset_specification.md` for the exact queries and the snapshot date.
+| Source | What it provides | Access |
+|---|---|---|
+| [USDA NASS Quick Stats](https://quickstats.nass.usda.gov/api) | Crop yield and acreage | API key (free) |
+| [NOAA ACIS GridData](https://docs.rcc-acis.org/acisws/) | Daily precipitation, temperature | No key |
+| [U.S. Drought Monitor](https://droughtmonitor.unl.edu/) | Weekly drought severity (D0–D4) | No key |
+| [USDA NRCS Soil Data Access](https://sdmdataaccess.nrcs.usda.gov/) | Soil water capacity, productivity | No key |
+| [NASA MODIS MOD13Q1 v061](https://lpdaac.usgs.gov/products/mod13q1v061/) | Satellite vegetation indices (NDVI, EVI) | GEE (free) |
+
+All sources are public federal data. The master dataset and all processed files are included in the repo — no API calls needed to start working.
+
+## Rebuilding the data (optional)
+
+Only needed if you want to re-run the pipelines. Get a free NASS API key and add it to a `.env` file:
+
+```
+NASS_API_KEY=your_key_here
+```
+
+Then run the scripts in `src/build/` in order: NASS --> USDM --> ACIS --> SSURGO --> `build_master.py`. Never commit `.env`.
