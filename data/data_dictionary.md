@@ -115,7 +115,7 @@ The well-covered core is **Iowa and Nebraska corn and soybeans**, plus Nebraska 
 | `yield_status` | String | — | Why the yield is or isn't there. `reported` = NASS published a number. `suppressed` = planted, but no grain harvested (NASS lists a yield of 0 and no harvested acres; 74 rows, 2000–2008). `not_reported` = NASS published no yield for this county-crop-year. Never null. |
 | `acres_planted` | Float | Acres | County acres planted. Available when NASS published it: most corn and soybean rows, about half of wheat, a minority of sorghum. |
 | `acres_harvested` | Float | Acres | County acres harvested for grain. Planted acres include silage, grazing and hay, so planted − harvested is not abandonment: for California corn the median gap is 44%. Only for soybeans is the gap close to abandonment. |
-| `yield_anomaly_pct` | Float | Percent | How far this year's yield deviates from the county's 26-year trend. Positive = above trend, negative = below. Computed as an OLS residual divided by the fitted value, so it removes the secular rise from genetics and technology. NaN when the county-crop pair has fewer than 10 reported yields (trend is too unstable) or when yield itself is NaN. |
+| `yield_anomaly_pct` | Float | Percent | How far this year's yield deviates from the county's 26-year trend. Positive = above trend, negative = below. Computed as an OLS residual divided by the fitted value, so it removes the secular rise from genetics and technology. NaN when the county-crop pair has fewer than 10 reported yields (trend is too unstable) or when yield itself is NaN. Because the trend is fitted on all 26 years, each county's anomalies average to about zero over 2000–2025. |
 
 **Yield ranges observed in this dataset:**
 
@@ -123,8 +123,8 @@ The well-covered core is **Iowa and Nebraska corn and soybeans**, plus Nebraska 
 |---|---|---|---|
 | Corn | 32.5 | 277.1 | 155–215, median about 195 (IA, NE 2016–2025) |
 | Soybeans | 15.0 | 75.5 | 50–66, median about 59 (IA, NE 2016–2025) |
-| Winter wheat | 8.7 | 120.3 | 40–60 (NE) |
-| Grain sorghum | 18.0 | 139.6 | 70–110 (NE) |
+| Winter wheat | 8.7 | 120.3 | 33–60, median about 46 (NE) |
+| Grain sorghum | 18.0 | 139.6 | 44–108, median about 80 (NE) |
 
 ### Weather (5 fields, from NOAA ACIS)
 
@@ -207,7 +207,7 @@ NaN is not zero. Do not fill it with zero. Do not drop it without understanding 
 |---|---|---|
 | `yield_per_acre` is NaN, `yield_status` = `suppressed` | The crop was planted but no grain was harvested. NASS lists a yield of 0 and no harvested acres. For corn, NASS shows these acres were cut for silage. | Leave as NaN. `acres_planted` shows the crop was grown. |
 | `yield_per_acre` is NaN, `yield_status` = `not_reported` | NASS published no estimate for that county-crop-year. The crop may not have been grown, or NASS didn't survey it. | Leave as NaN. The row exists so your time series is complete. |
-| No row at all for a county-crop combination | That crop has no NASS record in this state for the entire 2000–2025 window. | Nothing to do. California soybeans and Iowa sorghum are the known cases. |
+| No row at all for a county-crop combination | NASS has no record of that crop in that county for the entire 2000–2025 window. | Nothing to do. California soybeans and Iowa sorghum have no rows in any county. |
 | `acres_planted` is NaN | NASS published nothing for that county-crop-year, so yield and harvested acres are empty too. Common for sorghum and wheat. | Leave as NaN. |
 | Drought fields are NaN, row is `WHEAT` year `2000` | The wheat season starts September 1, 1999. The USDM archive starts January 4, 2000. Only 26 of the ~43 season weeks have drought data. We set all 3 fields to NaN rather than publish a value from 60% of a season. | Exclude wheat year 2000 from drought analysis or note it as incomplete. Weather is complete for this row. |
 | Every year of a county-crop pair is `not_reported` or `suppressed` | NASS has acreage for the pair but never published a county yield (17 pairs, 442 rows: 9 in California, 7 Nebraska sorghum, 1 Delaware sorghum). | Exclude from yield analysis. |
@@ -217,7 +217,7 @@ NaN is not zero. Do not fill it with zero. Do not drop it without understanding 
 
 ## Companion datasets
 
-The master CSV is built from 4 source datasets. The daily and weekly panels are included for teams that want finer resolution. The panels and boundary file cover all 253 counties in the 4 states; the master has the 230 with NASS data.
+The master CSV is built from 4 source datasets. The daily and weekly panels are included for teams that want finer resolution. The weather, drought and soil panels and the boundary file cover all 253 counties in the 4 states; the master, `nass_raw` and MODIS have the 230 with NASS data, and the irrigation extension fewer.
 
 | File | What it is | Rows | Join key |
 |---|---|---|---|
@@ -312,6 +312,8 @@ The most important disparity is the **lack of a crop dimension**. MODIS sees all
 
 3. **The temporal window is the full calendar year, not the crop's growing season.** The master's weather and drought fields use crop-specific season windows (May–Sep for corn, Sep–Jun for wheat). The MODIS extension uses January through December. Teams wanting season-specific NDVI can compute it from the 16-day composites using the GEE pipeline in `src/build/MODIS_gee_pull.py`.
 
+---
+
 ## Extension dataset: irrigation (NASS)
 
 The master has no irrigation field. This extension gives the county split NASS published between irrigated and non-irrigated (dryland) acres, mostly for Nebraska.
@@ -350,13 +352,15 @@ Iowa has none: NASS publishes no irrigated series for Iowa, which is rainfed. NA
 
 **Missing is not zero.** A master row with no match means NASS published no split, not that nothing was irrigated. Inside the file any of the 3 values can be NaN, for example a county with no dryland acres has no `yield_non_irrigated`. Where all three are present, `irrigated_share × yield_irrigated + (1 − irrigated_share) × yield_non_irrigated` matches the master's `yield_per_acre`.
 
+**After 2018.** A county's corn and soybean irrigated share changes little from year to year (typical spread 0.03), so its 2000–2018 average is a reasonable stand-in for later years. Wheat and sorghum shares vary more.
+
 ---
 
 ## Known limitations
 
 These are real constraints, not defects. They're listed here so you can design around them rather than discover them in your results.
 
-1. **Irrigation is only partly visible.** The master has no irrigation field; the irrigation extension covers mostly Nebraska 2000–2018 and nothing for Iowa. `aws_100cm_mm` measures what the soil can hold, not water applied. In Nebraska this reverses two comparisons: the lowest-storage counties are the most irrigated, and most corn is irrigated while most sorghum is not. USGS irrigation water-use data is available as an advanced extension.
+1. **Irrigation is only partly visible.** The master has no irrigation field; the irrigation extension covers mostly Nebraska 2000–2018 and nothing for Iowa. `aws_100cm_mm` measures what the soil can hold, not water applied. In Nebraska this reverses two comparisons: the lowest-storage counties are the most irrigated, and most corn is irrigated while most sorghum is not. USGS irrigation water-use data (not included) is an option for advanced teams.
 
 2. **Season windows are fixed.** They don't shift by state or year. California corn actually starts in March; these windows start in May. The daily panel ships alongside so you can build better windows if you want to.
 

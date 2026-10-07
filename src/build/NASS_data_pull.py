@@ -179,7 +179,7 @@ df = df[~drop_mask].copy()
 print(f"Dedup: dropped {_before_dedup - len(df)} ALL-aggregate rows, {len(df)} remain") 
 
 # Remove county_code=998 (OTHER COMBINED COUNTIES) — not a real county (I-22)
-# NASS uses this code to publish aggregated data for suppressed counties,
+# NASS uses this code to publish aggregated data for counties it doesn't publish individually,
 # returning multiple conflicting rows per year that cause all 884 duplicates.                                                                                                                        
 _before_998 = len(df)
 df = df[df["county_code"] != "998"].copy()
@@ -242,12 +242,12 @@ df["value"] = pd.to_numeric(
     errors="coerce",
 )
 
-# Null yield <= 0 (I-05): NASS codes suppressed counties as 0.0, not NaN
+# Null yield <= 0 (I-05): NASS lists a yield of 0 when a planted crop had no grain harvest
 # Set to NaN so V7 ("every non-null yield > 0") can pass and downstream code treats them as missing, not as real zero-yield observations
 _zero_yield_mask = (df["statistic"] == "YIELD") & df["value"].notna() & (df["value"] <= 0)
 _zero_count = _zero_yield_mask.sum()
 df.loc[_zero_yield_mask, "value"] = float("nan")
-print(f"Nulled {_zero_count} yield rows with value <= 0 (NASS suppression coded as zero)")
+print(f"Nulled {_zero_count} yield rows with value <= 0 (planted, no grain harvest)")
 
 print()
 print("Missing numeric values:", df["value"].isna().sum())

@@ -22,13 +22,15 @@ All teams would work from the same broad scenario and a curated starter data pac
 
 ## 4\. Possible Challenge Directions
 
-Five directions the data supports, each with a user and a decision. The README gives what success looks like and where to start for each.
+Seven directions the data supports, each with a user and a decision. The README gives what success looks like and where to start for each.
 
 * **Crop Loss Early Warning:** a crop insurance office decides, by August 1, which Iowa and Nebraska counties to send loss inspectors to first.
 * **Drought Assistance Targeting:** a state drought program decides which counties get help first and what drought rule triggers it.
 * **Heat-Stress Advisory:** an extension crop specialist decides when to warn corn and soybean growers that heat is hurting their crop.
 * **Soil and Crop Resilience Planning:** a soil conservation office decides where long-term soil programs would cut drought losses the most.
 * **Grain Supply Outlook:** an Iowa ethanol plant decides whether to buy extra corn from outside its local area this year.
+* **Frost-Safe Planting Calendar:** an extension agronomist decides the earliest date to recommend planting frost-sensitive crops in each county.
+* **Drought Category Reality Check:** a state drought task force decides whether a drought category should trigger the same response in Iowa as in Nebraska.
 * **AgriAdvisor (optional):** an evidence-grounded assistant built on top of another direction. It must show the data behind each answer, and teams need their own AI model access.
 
 ## 5\. Shared Data Package
@@ -43,6 +45,7 @@ Five directions the data supports, each with a user and a decision. The README g
 | **Crop & Yield** | Agricultural production and crop outcomes by county and year | Crop type, acres planted/harvested, yield per acre, yield anomaly | USDA NASS | Analyze crop performance, predict yield, or identify unusually good/bad growing seasons |
 | **Geographic Data** | Simplified county boundary file for mapping | County, state, FIPS code, geographic boundary | Census / USDA | Create risk maps, dashboards, and other geospatial applications |
 | **Satellite Vegetation (Optional)** | Vegetation-condition measures for advanced teams | Annual NDVI/EVI mean and max, NDVI anomaly, peak-greenness date | NASA / satellite data | Detect vegetation stress and test whether satellite observations explain yield differences (calendar-year values, so not a pre-harvest forecast) |
+| **Irrigation (Optional)** | Irrigated share of harvested acres and irrigated vs. dryland yields, mostly Nebraska 2000–2018 | Irrigated share, irrigated yield, non-irrigated yield | USDA NASS | Separate irrigation from soil and drought effects |
 | **Master Hackathon Dataset** | Beginner-friendly file combining the core datasets | County, year, crop, precipitation, extreme heat days, drought severity, soil water capacity, yield, yield anomaly | Derived from above sources | Begin analysis immediately without having to join multiple datasets |
 
 **Supporting materials:** The package will also include a data dictionary, source documentation, starter notebook, county boundary file, and example code for loading, visualizing, and mapping the data. Starter materials will demonstrate how to work with the datasets without providing a solution to the challenge.

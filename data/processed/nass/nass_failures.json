@@ -24,12 +24,12 @@
     "resolution": "The pipeline drops util_practice_desc from planted-acres requests. The dedup filter also exempts AREA PLANTED from the ALL UTILIZATION PRACTICES removal step."
   },
   {
-    "issue": "Suppressed yields appear as zero, not null",
-    "query": "YIELD for counties with few farms",
+    "issue": "Some yields are published as zero, not null",
+    "query": "YIELD, all crops and states",
     "status": "Data quality",
-    "cause": "When a county has too few farms to publish without disclosing an individual operation, NASS suppresses the value. In the raw API response this shows up as Value='(D)' or Value='0' rather than null. A zero yield is not a real observation — it is a suppression code.",
+    "cause": "NASS lists some county-crop-years with planted acres, a yield of Value='0' and no grain acres harvested: the crop was planted but no grain was harvested (for corn, NASS's silage series shows the acres were cut for silage). All 74 cases are 2000–2008. The SURVEY pull returned no '(D)' values. A zero yield is not a real observation.",
     "impact": "74 yield rows had value <= 0 and were set to NaN. If you pull NASS data yourself, always check for and null out zero yields.",
-    "resolution": "The pipeline converts non-numeric values and zeros to NaN via pd.to_numeric(errors='coerce') and an explicit <= 0 check. The yield_status field in the master dataset distinguishes 'suppressed' from 'not_reported'."
+    "resolution": "The pipeline converts non-numeric values and zeros to NaN via pd.to_numeric(errors='coerce') and an explicit <= 0 check. The master labels these rows yield_status = 'suppressed', separate from 'not_reported'."
   },
   {
     "issue": "Duplicate rows from ALL UTILIZATION PRACTICES / ALL CLASSES",
@@ -43,8 +43,8 @@
     "issue": "OTHER COMBINED COUNTIES (county_code=998)",
     "query": "All crop-state combinations",
     "status": "Data quality",
-    "cause": "NASS uses county_code 998 to publish aggregated data for suppressed counties. These rows have county_name 'OTHER (COMBINED) COUNTIES' and contain totals for all suppressed counties in the state, producing conflicting values that create duplicates.",
-    "impact": "1,342 rows removed. If you do not filter these, you get duplicate (fips, year, crop, statistic) keys and your joins will fan out.",
+    "cause": "NASS uses county_code 998 to publish aggregated data for counties it doesn't publish individually. These rows have county_name 'OTHER (COMBINED) COUNTIES' and contain totals for those counties in each district, producing conflicting values that create duplicates.",
+    "impact": "1,567 rows removed. If you do not filter these, you get duplicate (fips, year, crop, statistic) keys and your joins will fan out.",
     "resolution": "Filter out county_code == '998' before any analysis. These are not real counties."
   }
 ]

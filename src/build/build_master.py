@@ -165,7 +165,7 @@ for name, df in [("NASS", nass), ("ACIS", acis), ("USDM", usdm), ("SSURGO", soil
 
 # ── 2. County backbone ───────────────────────────────────────────────
 # Derived from USDM (all 253 counties with fips, county_name, state_alpha).
-# See master_decisions.md D1 for rationale.
+# See docs/dataset_specification.md section 1 (Backbone).
 
 section("2 · County backbone (from USDM)")
 
