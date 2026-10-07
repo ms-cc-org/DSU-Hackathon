@@ -131,7 +131,7 @@ All weather fields are aggregated over the crop's growing-season window (see "Se
 | `precip_mm` | Float | Millimetres | Total precipitation during the growing season. This is the sum of daily county-mean precipitation. If you see a value around 30 for Iowa when you expect 800, your data is in inches — it shouldn't be, but check. |
 | `precip_anomaly_pct` | Float | Percent | How far this season's precipitation deviates from the 26-year average for this county-crop. `(precip − mean) / mean × 100`. Positive = wetter than normal. |
 | `tavg_c` | Float | °C | Mean daily average temperature over the growing season. Computed as the mean of daily `(tmax + tmin) / 2`. If you see 48 for Iowa instead of 9, the data is in Fahrenheit — it shouldn't be, but check. |
-| `extreme_heat_days` | Integer | Days | Count of days in the season where daily max temperature reached or exceeded 35°C (95°F). This is near zero for winter wheat because the Sep-to-Jun window rarely hits 35°C. That's a property of the window, not evidence that wheat is heat-tolerant. |
+| `extreme_heat_days` | Float (whole numbers) | Days | Count of days in the season where daily max temperature reached or exceeded 35°C (95°F). This is near zero for winter wheat because the Sep-to-Jun window rarely hits 35°C. That's a property of the window, not evidence that wheat is heat-tolerant. |
 | `gdd` | Float | Degree-days | Growing Degree Days, using crop-specific base and cap temperatures. The formula is: `daily GDD = max(0, (min(tmax, T_cap) + max(tmin, T_base)) / 2 − T_base)`. Seasonal GDD is the sum. |
 
 **GDD parameters by crop:**
@@ -149,8 +149,8 @@ All drought fields are aggregated over the crop's growing-season window. Source 
 
 | Field | Type | Range | Description |
 |---|---|---|---|
-| `max_drought_severity` | Integer | 0–5 | Worst drought category observed in any week of the season, where more than 1% of the county was affected. 0 = no drought, 1 = D0 (abnormally dry), 2 = D1 (moderate), 3 = D2 (severe), 4 = D3 (extreme), 5 = D4 (exceptional). Note: this scale is offset by 1 from the USDM's own D0–D4 labels. |
-| `weeks_in_d2_plus` | Integer | 0–44 | Number of weeks during the season where severe drought or worse (D2 + D3 + D4) covered more than 1% of the county. A quick measure of drought duration. Maximum depends on season length: corn and sorghum ≤ 22, soybeans ≤ 27, winter wheat ≤ 44. |
+| `max_drought_severity` | Float (whole numbers) | 0–5 | Worst drought category observed in any week of the season, where more than 1% of the county was affected. 0 = no drought, 1 = D0 (abnormally dry), 2 = D1 (moderate), 3 = D2 (severe), 4 = D3 (extreme), 5 = D4 (exceptional). Note: this scale is offset by 1 from the USDM's own D0–D4 labels. |
+| `weeks_in_d2_plus` | Float (whole numbers) | 0–44 | Number of weeks during the season where severe drought or worse (D2 + D3 + D4) covered more than 1% of the county. A quick measure of drought duration. Maximum depends on season length: corn and sorghum ≤ 22, soybeans ≤ 27, winter wheat ≤ 44. |
 | `mean_dsci` | Float | 0–500 | Mean weekly Drought Severity and Coverage Index over the season. Computed as `D0×1 + D1×2 + D2×3 + D3×4 + D4×5` using categorical (non-overlapping) percentages. 0 means no drought all season. 500 means the entire county was in D4 every week. |
 
 **Do not confuse the scales.** `max_drought_severity` is 0–5. `mean_dsci` is 0–500. They are not the same thing and neither is a percentage.
@@ -280,7 +280,7 @@ combined = master.merge(modis, on=["fips", "year"], how="left", suffixes=("", "_
 
 The master dataset tells you what happened to yield — after the season is over. MODIS tells you what the satellite saw while it was happening. This opens a different class of analysis:
 
-- **Yield prediction from greenness.** Is `ndvi_max` a useful predictor of `yield_per_acre`? If a team can demonstrate that satellite greenness predicts yield before harvest, that's a real operational tool.
+- **Explaining yield from greenness.** Does `ndvi_max` explain part of the variation in `yield_anomaly_pct` that weather and drought miss? Because each row covers the full calendar year, including harvest and post-harvest months, it explains yield after the fact but can't forecast it before harvest. A forecast would need composites up to a cutoff date (see `src/build/MODIS_gee_pull.py`).
 - **Drought verification.** The USDM drought fields are based on expert classification. NDVI anomaly is a direct physical measurement. Do they agree? When they differ, which one better predicts yield loss?
 - **Irrigation detection.** California counties have high NDVI despite having low precipitation. If a team plots `precip_mm` against `ndvi_mean` and sees California as a clear outlier, they've rediscovered irrigation from satellite data.
 

@@ -127,14 +127,20 @@ docs/
 
 ## What you can build
 
-These directions are starting points. Pick one, combine them, or go somewhere else entirely.
+Every strong project answers three questions: **who uses it, what do they decide with it, and how do you know it helps?** Below are five directions the data supports. Each one has a simple starting point and a way to go further, so any team can pick one. You can also combine two or bring your own idea.
 
-| Direction | Example |
-|---|---|
-| **WaterWise** | Drought dashboard, irrigation decision tool, water-stress alerts |
-| **CropGuard** | Yield prediction model, risk scoring, early-warning system |
-| **Farm & Environment** | County risk maps, land-use comparison, geographic vulnerability |
-| **AgriAdvisor** | AI assistant grounded in this data, evidence-based recommendations |
+| Direction | Who it's for and what they decide | What success looks like | Start here → Go further |
+|---|---|---|---|
+| **Crop Loss Early Warning** | A crop insurance office in Iowa and Nebraska decides, on August 1 (mid-season, about two months before harvest, when they plan where to send staff), which counties to send loss inspectors to first. | A ranked list of counties to watch. When you test it on past years, most counties it flags really did have a bad year (10% or more below their normal yield), and it does better than simply flagging every county in severe drought. | **Start:** use the weekly drought panel to list counties in severe drought (D2 or worse) on the weekly map nearest August 1 each year, then check how many really had a bad year. **Go further:** add weather up to August 1 from the daily panel and build a prediction model. Don't use the master's weather and drought columns here: they cover the whole season, including weeks after August 1. |
+| **Drought Assistance Targeting** | A state drought program decides which counties get help first, and what drought rule should trigger that help. | A county "report card" anyone can read in under 2 minutes: how often the county was in drought, how much yield it lost, how vulnerable its soil is. A ranking built from 2000–2015 that correctly picks the counties that lost most in 2016–2025. | **Start:** build the report card from the master dataset (`weeks_in_d2_plus`, `max_drought_severity`, `yield_anomaly_pct`, soil fields). **Go further:** test drought rules (for example, "8 weeks in a row of severe drought") with the weekly drought panel, and count how often each rule gives help where there was no loss, or misses a real loss. |
+| **Heat-Stress Advisory** | An extension crop specialist in Iowa and Nebraska decides when to warn corn and soybean growers that heat is hurting their crop. | A heat rule (how hot, for how many days) backed by yield evidence, that works on years you didn't use to choose it and does better than the master's fixed count of days at 35 °C or hotter. | **Start:** compare yields in years with many vs few `extreme_heat_days`. **Go further:** build your own heat measures from the daily weather panel (days above 30 or 32 °C, heat in July only, hot spells), and check that heat still matters once drought is taken into account, since hot summers are often dry. |
+| **Soil and Crop Resilience Planning** | A soil conservation office decides where long-term soil programs would cut drought losses the most, and which crop holds up best in drought-prone Nebraska counties. | A priority map of counties, plus an estimate (with a range) of how much soil water storage changes drought losses, comparing counties with similar soil quality. The result holds when you split by state or time period. | **Start:** map the soil fields (`aws_100cm_mm`, `droughty_pct`, `nccpi_crop`) and compare drought-year losses for counties with high vs low water storage. **Go further:** fit a model with drought, soil and their combination, and report uncertainty. Note that soil has one value per county, so you have as many soil data points as counties, not rows. |
+| **Grain Supply Outlook** | An Iowa ethanol plant decides whether to buy extra corn from outside its local area this year. | An estimate, with a range, of how much corn a group of counties will produce. Tested on past years, it's closer to the real number than a guess based on the long-term trend alone. | **Start:** compute production (`yield_per_acre` × `acres_harvested`) for a group of Iowa counties and chart it over time with a trend line. **Go further:** add weather and drought to improve the estimate, and check how often the real number falls inside your range. |
+| **AgriAdvisor** *(optional)* | A county extension agent decides how to answer a farmer's question with evidence from the data. | It answers a set of test questions correctly (answers you checked by hand), says "the data can't answer that" when it can't, and every number matches the dataset. | **Start:** write Python functions that answer a few common questions and show the rows behind each answer. **Go further:** let an AI model call those functions. Needs your own AI model access (an API key or a local model). |
+
+**Testing on past years:** build your tool using some years and test it on years it hasn't seen (for example, build on 2000–2018 and test on 2019–2025). That's how you show it would have worked in a real season.
+
+**By checkpoint 1 (Saturday afternoon), name your user and the decision your tool helps them make.**
 
 ## Research questions the data can answer
 
@@ -159,10 +165,32 @@ All sources are public federal data. The master dataset and all processed files 
 
 ## Rebuilding the data (optional)
 
-Only needed if you want to re-run the pipelines. Get a free NASS API key and add it to a `.env` file:
+You never need to rebuild the data for the hackathon. Everything is already in `data/`. This section is for organizers refreshing it.
+
+Get a free [NASS API key](https://quickstats.nass.usda.gov/api) and add it to a `.env` file in the repo root:
 
 ```
 NASS_API_KEY=your_key_here
 ```
 
-Then run the scripts in `src/build/` in order: NASS --> USDM --> ACIS --> SSURGO --> `build_master.py`. Never commit `.env`.
+Then run the scripts in `src/build/` in this order:
+
+1. `NASS_data_pull.py`
+2. `USDM_data_pull.py`
+3. `ACIS_data_pull.py`
+4. `SSURGO_data_pull.py`
+5. `validate_sources.py`: checks the four source files
+6. `build_master.py`: builds `data/master_dataset.csv` and `.parquet`
+
+The scripts work from any directory. USDM, ACIS and SSURGO reuse the API responses cached in `data/raw/`, so a re-run only downloads what's missing. NASS always downloads fresh.
+
+**MODIS extension (organizer only).** `MODIS_gee_pull.py` runs after `build_master.py` and needs a Google Earth Engine account linked to a Google Cloud project:
+
+```bash
+pip install earthengine-api
+earthengine authenticate
+```
+
+Then add `EE_PROJECT=your-cloud-project-id` to `.env`.
+
+Never commit `.env`.

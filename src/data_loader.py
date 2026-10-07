@@ -6,7 +6,11 @@ _ROOT = Path(__file__).resolve().parents[1]
 
 def load_master():
     # The 21-field county × crop × year dataset
-    return pd.read_parquet(_ROOT / "data/master_dataset.parquet")
+    df = pd.read_parquet(_ROOT / "data/master_dataset.parquet")
+    # Plain floats (NaN for missing) behave the same in pandas, numpy and scikit-learn
+    int_cols = ["extreme_heat_days", "max_drought_severity", "weeks_in_d2_plus"]
+    df[int_cols] = df[int_cols].astype("float64")
+    return df
 
 def load_daily_weather():
     # Daily tmax, tmin, precipitation — 1999-2025, all counties

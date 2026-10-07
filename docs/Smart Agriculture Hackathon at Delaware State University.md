@@ -22,17 +22,13 @@ All teams would work from the same broad scenario and a curated starter data pac
 
 ## 4\. Possible Challenge Directions
 
-### WaterWise: Irrigation & Drought Decision Support
-
-Use precipitation, temperature, drought, soil moisture, crop, or evapotranspiration data to identify water stress and help users decide when or where intervention may be needed. Beginner teams could use rules and visualization; advanced teams could add prediction or optimization.
-
 ### CropGuard: Predicting Agricultural Risk
 
 Use weather, soil, crop, and/or historical yield data to identify conditions associated with poor crop outcomes. Teams might build classification or regression models, risk scores, feature-importance views, or early-warning tools.  
 Farm & Environment: Agricultural Land-Use Intelligence  
 Use land-cover, watershed, drought, agricultural census, or satellite-derived data to examine how agricultural conditions vary across space and time. Teams could identify areas vulnerable to drought or flooding, visualize land-use change, or compare agricultural risk across counties or watersheds.
 
-### AgriAdvisor: Evidence-Grounded AI Assistant
+### AgriAdvisor (optional): Evidence-Grounded AI Assistant
 
 Build an AI-assisted application that answers an agricultural question using provided authoritative documents and/or structured datasets. The application should show the evidence behind its output and avoid unsupported recommendations. This track should require more than simply placing a chat interface around an LLM.
 
@@ -52,7 +48,7 @@ Build an AI-assisted application that answers an agricultural question using pro
 
 **Supporting materials:** The package will also include a data dictionary, source documentation, starter notebook, county boundary file, and example code for loading, visualizing, and mapping the data. Starter materials will demonstrate how to work with the datasets without providing a solution to the challenge.
 
-**Possible applications:** Drought-risk dashboards, irrigation decision-support tools, crop-yield prediction, agricultural resilience indices, geographic risk maps, crop-stress early-warning systems, or evidence-grounded AI agricultural assistants.
+**Possible applications:** Drought-risk dashboards, crop-yield prediction, agricultural resilience indices, geographic risk maps, crop-stress early-warning systems, or evidence-grounded AI agricultural assistants.
 
 **Common framework:** **Environmental Exposure → Agricultural Vulnerability → Crop Impact → Decision Support**
 

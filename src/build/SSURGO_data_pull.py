@@ -25,6 +25,9 @@ from pathlib import Path
 import pandas as pd
 import requests
 
+# Repo root, so the script works from any directory
+ROOT = Path(__file__).resolve().parents[2]
+
 SDA_URL = "https://sdmdataaccess.nrcs.usda.gov/Tabular/SDMTabularService/post.rest"
 
 # State abbreviation → 2-digit FIPS prefix
@@ -41,7 +44,7 @@ NCCPI_RULES = {
     "nccpi_sg": "NCCPI - NCCPI Small Grains Submodel (II)",
 }
 
-raw_dir = Path("data/raw/ssurgo")
+raw_dir = ROOT / "data/raw/ssurgo"
 raw_dir.mkdir(parents=True, exist_ok=True)
 
 
@@ -235,13 +238,13 @@ panel = (
     .reset_index(drop=True)
 )
 
-out_path = Path("data/processed/soil/soil_county.parquet")
+out_path = ROOT / "data/processed/soil/soil_county.parquet"
 out_path.parent.mkdir(parents=True, exist_ok=True)
 panel.to_parquet(out_path, index=False)
 print(f"\nSaved {len(panel)} rows -> {out_path}")
 
 if failures:
-    fail_path = Path("data/processed/soil/ssurgo_failures.json")
+    fail_path = ROOT / "data/processed/soil/ssurgo_failures.json"
     with open(fail_path, "w") as f:
         json.dump(failures, f, indent=2)
     print(f"Logged {len(failures)} failures -> {fail_path}")

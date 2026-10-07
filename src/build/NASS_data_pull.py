@@ -7,7 +7,10 @@ import requests
 import time
 from dotenv import load_dotenv
 
-load_dotenv()
+# Repo root, so the script works from any directory
+ROOT = Path(__file__).resolve().parents[2]
+
+load_dotenv(ROOT / ".env")
 API_KEY = os.environ["NASS_API_KEY"]
 
 URL = "https://quickstats.nass.usda.gov/api/api_GET"
@@ -57,7 +60,7 @@ CROP_QUERIES = {
 
 
 all_frames = []
-raw_dir = Path("data/raw/nass")
+raw_dir = ROOT / "data/raw/nass"
 raw_dir.mkdir(parents=True, exist_ok=True)
 failures = []
 
@@ -276,7 +279,7 @@ if len(bad_yields) > 0:
 
 # Dataset save
 
-out_dir = Path("data/processed/nass")
+out_dir = ROOT / "data/processed/nass"
 out_dir.mkdir(parents=True, exist_ok=True)
 
 df.to_parquet(out_dir / "nass_raw.parquet", index=False)
