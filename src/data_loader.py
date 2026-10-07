@@ -31,6 +31,10 @@ def load_soil():
 def load_modis():
     return pd.read_parquet(_ROOT / "data/processed/modis/modis_ndvi_county.parquet")
 
+def load_irrigation():
+    # NASS irrigated share and irrigated/non-irrigated yields per county x crop x year (extension)
+    return pd.read_parquet(_ROOT / "data/processed/irrigation/nass_irrigation.parquet")
+
 def load_counties():
     with open(_ROOT / "data/counties.geojson") as f:
         return json.load(f)
