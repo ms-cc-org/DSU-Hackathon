@@ -2,31 +2,79 @@
 
 **October 17–18, 2026 | Delaware State University | 24 hours**
 
-A farming community is facing increasing variability in rainfall, temperature, drought, and growing conditions. Your team has been asked to build a tool that helps an agricultural stakeholder understand these conditions and make a better decision.
-
-This repo gives you the data and a working app scaffold. You bring the analysis.
+Droughts, heat waves and unusual weather make farming harder to plan. Many people make decisions about this every season: crop insurers, extension agents, state drought programs, grain buyers. Your team picks one of them, uses 26 years of real county farm data to help them make one decision, and builds a tool that shows it.
 
 ---
 
-## What's in the dataset
+## What you'll do
 
-One row is one county, one crop, one year.
+1. **Pick a user and a decision.** Choose one of the directions below or bring your own. By checkpoint 1 (Saturday afternoon), name your user and the decision your tool helps them make.
+2. **Find the evidence.** Use the data to answer the question behind that decision. Test your answer on years you didn't use to build it.
+3. **Build a tool for your user.** It shows them the evidence and what to decide. It can be a **Streamlit app** (a starter app is included), a **Jupyter notebook** (a starter notebook is included), or another **Python app**. Your user should be able to use it without reading your code.
+4. **Present it.** About 5 minutes of pitch and live demo, then 3 minutes of judges' questions. Explain who your user is, what they decide, what evidence you used, and how you know it works.
 
-- **4 states:** California (irrigated), Iowa (rainfed), Nebraska (mixed), Delaware (rainfed, small)
-- **4 crops:** Corn grain, soybeans, winter wheat, grain sorghum
+By checkpoint 2 (Saturday evening), your data should load and a first version should run. Your GitHub repository should include your code and short instructions to run it. Judges reward a tool that clearly helps its user, not technical complexity for its own sake.
+
+---
+
+## Choose a direction
+
+Each direction names a user, their decision, and what success means. Pick one, combine two, or bring your own idea.
+
+| Direction | Who decides | Their decision | Success looks like | Start → Go further |
+|---|---|---|---|---|
+| **Crop Loss Early Warning** | Crop insurance office | Which counties to inspect first, on August 1 | Flags more real losses than "all counties in severe drought" (or shows why it can't) | **Start:** severe-drought counties on the last weekly map before August 1 → **Further:** a model with weather up to August 1 from the daily panel (not the master's season totals) |
+| **Drought Assistance Targeting** | State drought program | Which counties get help first, and what triggers it | A 2-minute county report card; a 2000–2015 ranking that beats chance on 2016–2025 | **Start:** report card from the drought, yield and soil fields (don't rank by average `yield_anomaly_pct`) → **Further:** test trigger rules on the weekly panel |
+| **Heat-Stress Advisory** | Extension crop specialist | When to warn corn and soybean growers about heat | A heat rule that beats "days at 35 °C or hotter" on unseen years | **Start:** yields in years with many vs few `extreme_heat_days` → **Further:** your own heat measures from the daily panel, allowing for drought |
+| **Soil and Crop Resilience Planning** | Soil conservation office | Where soil programs cut drought losses most | A priority map and a soil-effect estimate with a range ("no clear effect" counts) | **Start:** drought-year losses for high vs low soil water storage → **Further:** model drought × soil; check by state and time period |
+| **Grain Supply Outlook** | Iowa ethanol plant | Whether to buy corn from outside its area | A production estimate with a range that beats the trend | **Start:** yield × harvested acres for counties that report every year → **Further:** add weather and drought; check your range |
+| **Frost-Safe Planting Calendar** | Extension agronomist | The earliest safe planting date per county | A date built on 2000–2018 that sees frost after it in no more than 1 in 10 years of 2019–2025 | **Start:** each county's last spring day at or below 0 °C (daily panel), then a high percentile → **Further:** a safety margin, a map, fall frost (county averages miss low-lying fields) |
+| **Drought Category Reality Check** | State drought task force | Whether a drought level such as D3 should mean the same in Iowa and Nebraska | A drought level → yield loss table from 2000–2012 that predicts 2013–2025 within about 4 points (Iowa, Nebraska corn and soybeans) | **Start:** average `yield_anomaly_pct` by `max_drought_severity` (4 = D3), state and crop → **Further:** drought timing from the weekly panel; split by `irrigated_share` |
+| **AgriAdvisor** *(optional, built on another direction)* | County extension agent | How to answer a farmer's question | Right answers on hand-checked questions; "the data can't answer that" when it can't | **Start:** Python functions that answer questions and show the rows behind them → **Further:** let an AI model call them (needs your own API key or a local model) |
+
+---
+
+## What we provide
+
+### The master dataset
+
+One table where **each row is one county, one crop, one year**. For example, the row for Polk County, Iowa, corn, 2012 holds that year's corn yield (149.1 bushels per acre, 15.5% below the county's normal), the drought and weather during that growing season, and the county's soil.
+
+- **4 states:** California (irrigated), Iowa (rainfed), Nebraska (part irrigated), Delaware (rainfed, small)
+- **4 crops:** corn grain, soybeans, winter wheat, grain sorghum
 - **26 years:** 2000–2025
-- **21 fields** covering yield, weather, drought, and soil
-- **17,056 rows**, but only 68% have a reported yield. The well-covered core is Iowa and Nebraska corn and soybeans, plus Nebraska wheat; California, Delaware, sorghum, and Iowa and Delaware wheat are thin. See the coverage table in the data dictionary before picking a project.
+- **21 columns** of yield, weather, drought and soil, in 17,056 rows
 
-There is also an **extension dataset** with satellite-derived vegetation indices (NDVI and EVI) from NASA MODIS, covering the same counties and years. It joins on `fips + year` and adds a remote-sensing signal that complements the ground-level weather and yield data. A second extension gives NASS's **irrigated share and irrigated vs. dryland yields** by county, crop and year, mostly for Nebraska 2000–2018. Both join to the master; see the extension sections in the data dictionary for details and caveats.
+Only 68% of rows have a reported yield. The well-covered part is **Iowa and Nebraska corn and soybeans**, plus Nebraska wheat. California, Delaware, sorghum, and Iowa and Delaware wheat are thin. Check the coverage table in the data dictionary before you pick a project.
 
-Every field is documented in [`data/data_dictionary.md`](data/data_dictionary.md). Read it before you start — it explains what every NaN means, what the season windows are, and what the known limitations are.
+### County codes (FIPS)
 
-## Quick start
+Every county has a 5-digit code called a **FIPS code**: `19153` is Polk County, Iowa, and `06001` is Alameda County, California. Every file uses it, so it's how you combine tables: matching the FIPS code (plus the year, when both tables have one) lines up the rows for the same county.
 
-### 1. Install
+Keep it as text. If it's read as a number, `06001` becomes `6001` and California rows stop matching anything, with no error.
 
-You need **Python 3.11 or newer** (3.12 recommended). Check with `python3 --version` (Windows: `py --version`). If it's older, install 3.12 from [python.org](https://www.python.org/downloads/). The `python3` that comes with macOS is 3.9 and won't work. The install downloads about 200 MB and uses about 900 MB of disk, so do it before the event rather than on event wifi.
+### More detailed data
+
+- **Daily weather** (temperature and rain per county per day), **weekly drought maps**, **soil per county**, and the raw **NASS crop records**. Use these to build your own measures, for example heat in July only.
+- **Satellite greenness (MODIS)**: one value per county per year, matched to the master by county and year.
+- **Irrigation**: the share of each crop that was irrigated and irrigated vs. dryland yields, mostly for Nebraska 2000–2018, matched by county, crop and year.
+- **County boundaries** for maps.
+
+Every column, every gap and every known limitation is explained in the [**data dictionary**](data/data_dictionary.md). Read it before you start.
+
+---
+
+## Get set up
+
+You need Python, the code and data from this repo, and the Python packages the code uses. The install downloads about 200 MB and uses about 900 MB of disk, so do it before the event, not on event wifi.
+
+### 1. Check your Python
+
+You need **Python 3.11 or newer** (3.12 recommended). In a terminal, run `python3 --version` (Windows: `py --version`). If it's older, install 3.12 from [python.org](https://www.python.org/downloads/). The `python3` that comes with macOS is 3.9 and won't work.
+
+### 2. Download the repo and install the packages
+
+These commands copy the repo, create a **virtual environment** (a private folder, `.venv`, that holds this project's packages so they don't clash with anything else on your computer), turn it on, and install the packages listed in `requirements.txt`.
 
 **macOS / Linux:**
 ```bash
@@ -46,29 +94,35 @@ py -m venv .venv
 python -m pip install -r requirements.txt
 ```
 
-If PowerShell says running scripts is disabled, run `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned` once and activate again. In Command Prompt (cmd), activate with `.venv\Scripts\activate.bat` instead.
+It worked if your prompt starts with `(.venv)`. Each time you open a new terminal, `cd DSU-Hackathon` and run the activate line again.
 
-It worked if your prompt starts with `(.venv)`. In every new terminal, `cd DSU-Hackathon` and activate again.
+If something goes wrong:
+- **PowerShell says running scripts is disabled:** run `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned` once, then activate again. In Command Prompt (cmd), activate with `.venv\Scripts\activate.bat` instead.
+- **pip says `No matching distribution found for numpy==2.4.6`:** the venv was made with Python older than 3.11. Delete the `.venv` folder and create it again with a newer Python.
 
-If pip says `No matching distribution found for numpy==2.4.6`, the venv was made with Python older than 3.11. Delete the `.venv` folder and create it again with a newer Python.
-
-### 2. Run the app
+### 3. Run the starter app
 
 ```bash
 streamlit run app.py
 ```
 
-The first time, Streamlit asks for an email address in the terminal. Press Enter to skip it; the app then opens in your browser.
+The first time, Streamlit asks for an email address in the terminal. Press Enter to skip it; the app then opens in your browser. It has filters for state, crop and years, a working yield chart in the Overview tab, and three empty tabs (Weather & Yield, Drought Analysis, Soil & Risk) for you to build on.
 
-The app loads the dataset, gives you sidebar filters for state, crop, and year range, and has a working yield chart in the Overview tab. The other three tabs (Weather & Yield, Drought Analysis, Soil & Risk) are yours to build.
+### 4. Open the starter notebook
 
-### 3. Load data in a notebook or script
+From the repo root, with the venv active, run `jupyter lab` and open `notebooks/starter_notebook.ipynb` (or open it in VS Code and pick the `.venv` kernel). It loads the data, walks through the 2012 Iowa drought, and gives three questions to start from.
 
-The starter notebook is at `notebooks/starter_notebook.ipynb`. To run it locally, start `jupyter lab` from the repo root with the venv active and open it there (or open it in VS Code and pick the `.venv` kernel). To run it without installing anything, open it in Google Colab and run the first cell, which fetches the data:
+No install? Open the notebook in Google Colab and run its first cell, which fetches the data:
 
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/ms-cc-org/DSU-Hackathon/blob/main/notebooks/starter_notebook.ipynb)
 
-Use the data loader; it handles file paths and types for you. Run these snippets from the repo root. From a subfolder such as `notebooks/`, add `import sys; sys.path.insert(0, "..")` first, as the starter notebook does.
+---
+
+## Load the data in your own code
+
+The data loader handles file paths and data types for you. Run these from the repo root. From a subfolder such as `notebooks/`, add `import sys; sys.path.insert(0, "..")` first, as the starter notebook does.
+
+If your Streamlit app is in a subfolder (for example `team_x/app.py`), start it from the repo root with `python -m streamlit run team_x/app.py`. Plain `streamlit run team_x/app.py` fails with `No module named 'src'`.
 
 ```python
 from src.data_loader import load_master
@@ -76,7 +130,7 @@ from src.data_loader import load_master
 df = load_master()          # 17,056 rows x 21 columns, fips is already a string
 ```
 
-Or load the raw panels for finer resolution:
+The detailed data:
 
 ```python
 from src.data_loader import load_nass_raw, load_daily_weather, load_weekly_drought, load_soil, load_modis, load_irrigation, load_counties
@@ -90,9 +144,7 @@ irrigation = load_irrigation()    # 3,716 rows, irrigated share and yields per c
 counties = load_counties()        # GeoJSON boundaries for maps, feature id = fips
 ```
 
-For maps, the notebook's worked example shows `px.choropleth` with `load_counties()`. Plotly 7 removed `px.choropleth_mapbox` and `px.scatter_mapbox`, which older tutorials use; use `px.choropleth` or `px.choropleth_map` instead.
-
-If you prefer to load directly without the helper:
+To read the files directly instead:
 
 ```python
 import pandas as pd
@@ -102,7 +154,32 @@ df = pd.read_parquet("data/master_dataset.parquet")
 df = pd.read_csv("data/master_dataset.csv", dtype={"fips": str})
 ```
 
-**Important:** `fips` is a 5-character string, not a number. California is state FIPS `06`. If pandas reads it as an integer, `06001` becomes `6001` and every join silently fails. The parquet format and `data_loader.py` handle this automatically. If you use `read_csv`, pass `dtype={"fips": str}`. If you use `read_parquet`, three count columns come back as pandas `Int64`, which breaks numpy calls such as `np.nanmean`; `load_master()` converts them to float.
+With `read_csv`, always pass `dtype={"fips": str}`. With `read_parquet`, three count columns come back as pandas `Int64`, whose missing values some numpy calls don't see (`np.isnan(df["weeks_in_d2_plus"]).sum()` gives 0, not 150); `load_master()` converts them to float.
+
+For maps, the notebook's worked example shows `px.choropleth` with `load_counties()`. Plotly 7 removed `px.choropleth_mapbox` and `px.scatter_mapbox`, which older tutorials use; use `px.choropleth` or `px.choropleth_map` instead.
+
+---
+
+## Test on past years
+
+Build your tool on some years and test it on years it hasn't seen (for example, build on 2000–2018 and test on 2019–2025). That's how you show it would have worked in a real season. `yield_anomaly_pct` comes from a trend fitted on all of 2000–2025, including your test years; for a strict test, refit each county's trend on your training years only.
+
+**Optional, advanced: the 2026 season.** The dataset ends in 2025, but the ACIS and Drought Monitor APIs serve 2026 data with no key. `src/build/ACIS_data_pull.py` and `USDM_data_pull.py` show the requests (the drought API's JSON uses lowercase `d0`–`d4`). USDA's monthly *Crop Production* reports give official 2026 state yield forecasts to compare against.
+
+---
+
+## Research questions the data can answer
+
+If you want a question to explore before choosing a user:
+
+1. When a county is in D2+ drought during its growing season, how far does yield fall below trend?
+2. In rainfed Iowa, do counties with higher soil water storage (`aws_100cm_mm`) lose less yield in drought years? (Don't pool Nebraska: its lowest-storage counties are the most heavily irrigated, so they look drought-resistant for reasons the soil fields can't show.)
+3. In Nebraska, sorghum's yield falls further below trend than corn's in drought years, even though sorghum is the "drought-tolerant" crop. What could explain that? (Hint: which crop is usually irrigated? Check how many sorghum counties report after 2010.)
+4. Is precipitation a stronger yield predictor in rainfed Iowa than in irrigated California?
+5. Is there an extreme heat threshold above which yield drops sharply? Does it differ by crop?
+6. Once you control for soil quality (`nccpi_crop`), how much of the yield gap is left for drought to explain?
+
+---
 
 ## Repo layout
 
@@ -138,36 +215,6 @@ docs/
 └── timeline.md                 organizer prep timeline
 ```
 
-## What you can build
-
-Every strong project answers three questions: **who uses it, what do they decide with it, and how do you know it helps?** Below are seven directions the data supports. Each one has a simple starting point and a way to go further, so any team can pick one. You can also combine two or bring your own idea.
-
-| Direction | Who it's for and what they decide | What success looks like | Start here → Go further |
-|---|---|---|---|
-| **Crop Loss Early Warning** | A crop insurance office in Iowa and Nebraska decides, on August 1 (mid-season, about two months before harvest, when they plan where to send staff), which counties to send loss inspectors to first. | A ranked list of counties to watch. When you test it on past years, a higher share of the counties it flags had a bad year (10% or more below their normal yield) than the same number of counties picked by severe drought alone. If it can't beat that on August 1, showing honestly why is a valid result. | **Start:** use the weekly drought panel to list counties in severe drought (D2 or worse) on the last weekly map dated before August 1 each year, then check how many really had a bad year. **Go further:** add weather up to August 1 from the daily panel and build a prediction model. Don't use the master's weather and drought columns here: they cover the whole season, including weeks after August 1. |
-| **Drought Assistance Targeting** | A state drought program decides which counties get help first, and what drought rule should trigger that help. | A county "report card" anyone can read in under 2 minutes: how often the county was in drought, how much yield it lost, how vulnerable its soil is. A ranking built from 2000–2015 that picks the counties hit hardest in 2016–2025 better than chance. Don't rank by average `yield_anomaly_pct`: each county's anomalies average to about zero over 2000–2025, so one period's average mirrors the other's. | **Start:** build the report card from the master dataset (`weeks_in_d2_plus`, `max_drought_severity`, `yield_anomaly_pct`, soil fields). **Go further:** test drought rules (for example, "8 weeks in a row of severe drought") with the weekly drought panel, and count how often each rule gives help where there was no loss, or misses a real loss. |
-| **Heat-Stress Advisory** | An extension crop specialist in Iowa and Nebraska decides when to warn corn and soybean growers that heat is hurting their crop. | A heat rule (how hot, for how many days) backed by yield evidence, that works on years you didn't use to choose it and does better than the master's fixed count of days at 35 °C or hotter. | **Start:** compare yields in years with many vs few `extreme_heat_days`. **Go further:** build your own heat measures from the daily weather panel (days above 30 or 32 °C, heat in July only, hot spells), and check that heat still matters once drought is taken into account, since hot summers are often dry. |
-| **Soil and Crop Resilience Planning** | A soil conservation office decides where long-term soil programs would cut drought losses the most, and which crop holds up best in drought-prone Nebraska counties. | A priority map of counties, plus an estimate (with a range) of how much soil water storage changes drought losses, comparing counties with similar soil quality. Check whether the result holds when you split by state or time period. A well-supported "no detectable effect" is a valid result. | **Start:** map the soil fields (`aws_100cm_mm`, `droughty_pct`, `nccpi_crop`) and compare drought-year losses for counties with high vs low water storage. **Go further:** fit a model with drought, soil and their combination, and report uncertainty. Note that soil has one value per county, so you have as many soil data points as counties, not rows. |
-| **Grain Supply Outlook** | An Iowa ethanol plant decides whether to buy extra corn from outside its local area this year. | An estimate, with a range, of how much corn a group of counties will produce. Tested on past years, it's closer to the real number than a guess based on the long-term trend alone. | **Start:** compute production (`yield_per_acre` × `acres_harvested`) for a group of Iowa counties that report every year (adding up counties that drop in and out makes production jump), and chart it over time with a trend line. **Go further:** add weather and drought to improve the estimate, and check how often the real number falls inside your range. |
-| **Frost-Safe Planting Calendar** | An extension agronomist decides the earliest date to recommend planting frost-sensitive crops in each county. | A planting date for each county, built from 2000–2018, that is followed by a frost in no more than 1 in 10 county-years in 2019–2025. | **Start:** use the daily weather panel to find each county's last day from January to June with `tmin_c` at or below 0 °C, then take a high percentile of those dates. A year with no spring frost (some California counties) counts as frost-free. **Go further:** choose a safety margin and map the dates; add the first fall frost to get season length. These are county-average temperatures, so low-lying fields can frost later than the data shows. |
-| **Drought Category Reality Check** | A state drought task force decides whether a drought category (for example D3) should trigger the same response in Iowa as in Nebraska. | A "drought category → expected yield loss" table for Iowa and Nebraska corn and soybeans, built on 2000–2012, that predicts 2013–2025 within about 4 points on average. | **Start:** group the master by `max_drought_severity` (offset by one: 4 = D3), state and crop, average `yield_anomaly_pct`, and check how many rows each cell has. **Go further:** use the weekly drought panel to test drought duration and timing, and split by `irrigated_share` from the irrigation extension. |
-| **AgriAdvisor** *(optional)* | A county extension agent decides how to answer a farmer's question with evidence from the data. | It answers a set of test questions correctly (answers you checked by hand), says "the data can't answer that" when it can't, and every number matches the dataset. | **Start:** write Python functions that answer a few common questions and show the rows behind each answer. **Go further:** let an AI model call those functions. Needs your own AI model access (an API key or a local model). |
-
-**Testing on past years:** build your tool using some years and test it on years it hasn't seen (for example, build on 2000–2018 and test on 2019–2025). That's how you show it would have worked in a real season. `yield_anomaly_pct` comes from a trend fitted on all of 2000–2025, including your test years; for a strict test, refit each county's trend on your training years only.
-
-**Optional, advanced: the 2026 season.** The dataset ends in 2025, but the ACIS and Drought Monitor APIs serve 2026 data with no key. `src/build/ACIS_data_pull.py` and `USDM_data_pull.py` show the requests (the drought API's JSON uses lowercase `d0`–`d4`). USDA's monthly *Crop Production* reports give official 2026 state yield forecasts to compare against.
-
-**By checkpoint 1 (Saturday afternoon), name your user and the decision your tool helps them make.**
-
-## Research questions the data can answer
-
-1. When a county is in D2+ drought during its growing season, how far does yield fall below trend?
-2. In rainfed Iowa, do counties with higher soil water storage (`aws_100cm_mm`) lose less yield in drought years? (Don't pool Nebraska: its lowest-storage counties are the most heavily irrigated, so they look drought-resistant for reasons the soil fields can't show.)
-3. In Nebraska, sorghum's yield falls further below trend than corn's in drought years, even though sorghum is the "drought-tolerant" crop. What could explain that? (Hint: which crop is usually irrigated? Check how many sorghum counties report after 2010.)
-4. Is precipitation a stronger yield predictor in rainfed Iowa than in irrigated California?
-5. Is there an extreme heat threshold above which yield drops sharply? Does it differ by crop?
-6. Once you control for soil quality (`nccpi_crop`), how much of the yield gap is left for drought to explain?
-
 ## Data sources
 
 | Source | What it provides | Access |
@@ -180,8 +227,9 @@ Every strong project answers three questions: **who uses it, what do they decide
 
 All sources are public federal data. The master dataset and all processed files are included in the repo — no API calls needed to start working.
 
-## Rebuilding the data (optional)
+## Rebuilding the data (organizers only)
 
+<details>
 You never need to rebuild the data for the hackathon. Everything is already in `data/`. This section is for organizers refreshing it.
 
 Get a free [NASS API key](https://quickstats.nass.usda.gov/api) and add it to a `.env` file in the repo root:
@@ -213,3 +261,4 @@ earthengine authenticate
 Then add `EE_PROJECT=your-cloud-project-id` to `.env`.
 
 Never commit `.env`.
+</details>

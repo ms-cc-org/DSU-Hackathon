@@ -21,7 +21,7 @@ master = pd.read_csv("data/master_dataset.csv", dtype={"fips": str})
 master = pd.read_parquet("data/master_dataset.parquet")  # fips is already a string
 ```
 
-Reading the parquet directly gives `extreme_heat_days`, `max_drought_severity` and `weeks_in_d2_plus` as pandas `Int64`, which breaks numpy calls such as `np.nanmean`. `load_master()` in `src/data_loader.py` converts them to float.
+Reading the parquet directly gives `extreme_heat_days`, `max_drought_severity` and `weeks_in_d2_plus` as pandas `Int64`, whose missing values some numpy calls don't see: `np.isnan(master["weeks_in_d2_plus"]).sum()` gives 0, not 150. `load_master()` in `src/data_loader.py` converts them to float.
 
 ---
 
