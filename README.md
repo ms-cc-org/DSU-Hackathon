@@ -15,11 +15,21 @@ Droughts, heat waves and unusual weather make farming harder to plan. Many peopl
 
 By checkpoint 2 (Saturday evening), your data should load and a first version should run. Your GitHub repository should include your code and short instructions to run it. Judges reward a tool that clearly helps its user, not technical complexity for its own sake.
 
+### Minimum deliverable
+
+Every team must finish:
+- one named user and decision;
+- one piece of evidence, checked on years not used to build it (or an honest statement of why it can't be);
+- a tool the user can use;
+- a 5-minute pitch with a live demo.
+
+You don't need to complete every item in the **Success looks like** column below. That column describes a strong finished project; the minimum deliverable is what this hackathon requires. Each direction's own minimum is listed under the table.
+
 ---
 
 ## Choose a direction
 
-Each direction names a user, their decision, and what success means. Pick one, combine two, or bring your own idea.
+Each direction names a user, their decision, and what success means. Pick one, combine two, or bring your own idea. Combining two only works if each stays at its minimum.
 
 | Direction | Who decides | Their decision | Success looks like | Start → Go further |
 |---|---|---|---|---|
@@ -31,6 +41,59 @@ Each direction names a user, their decision, and what success means. Pick one, c
 | **Frost-Safe Planting Calendar** | Extension agronomist | The earliest safe planting date per county | A date built on 2000–2018 that sees frost after it in no more than 1 in 10 years of 2019–2025 | **Start:** each county's last spring day at or below 0 °C (daily panel), then a high percentile → **Further:** a safety margin, a map, fall frost (county averages miss low-lying fields) |
 | **Drought Category Reality Check** | State drought task force | Whether a drought level such as D3 should mean the same in Iowa and Nebraska | A drought level → yield loss table from 2000–2012 that predicts 2013–2025 within about 4 points (Iowa, Nebraska corn and soybeans) | **Start:** average `yield_anomaly_pct` by `max_drought_severity` (4 = D3), state and crop → **Further:** drought timing from the weekly panel; split by `irrigated_share` |
 | **AgriAdvisor** *(optional, built on another direction)* | County extension agent | How to answer a farmer's question | Right answers on hand-checked questions; "the data can't answer that" when it can't | **Start:** Python functions that answer questions and show the rows behind them → **Further:** let an AI model call them (needs your own API key or a local model) |
+
+**Minimum to finish, per direction:**
+
+| Direction | Minimum to finish |
+|---|---|
+| Crop Loss Early Warning | The D2+ watch list for any chosen year (last weekly map before August 1), its hit rate over 2000–2025, and a tool that shows the list with the reason for each county. Needs date handling on the weekly panel: intermediate. |
+| Drought Assistance Targeting | The county report card (drought frequency, drought-year losses, soil) for any county, plus the 2000–2015 → 2016–2025 ranking check. |
+| Heat-Stress Advisory | One heat rule chosen on 2000–2018 and checked on 2019–2025 (hit rate and false-alarm rate), compared with the master's `extreme_heat_days`, shown in a simple tool. |
+| Soil and Crop Resilience Planning | A map of soil water storage with priority counties, and one comparison of drought-year losses between high- and low-storage counties with a range (for example a bootstrap), stating which counties and years it covers. |
+| Grain Supply Outlook | Production for a group of counties that report every year, a trend-only estimate with a range from past trend errors, and a check on held-out years of how often the real value fell inside the range. |
+| Frost-Safe Planting Calendar | A planting date per county built on 2000–2018, its frost rate on 2019–2025, a map, and the safety margin with its trade-off. |
+| Drought Category Reality Check | The table, its 2013–2025 check, and a one-sentence recommendation, shown in a simple tool. |
+| AgriAdvisor | Only on top of another direction's minimum. 3–5 Python functions that answer common questions from the data and show the rows behind each answer, and a set of hand-checked test questions, including some the data can't answer. No language model needed. |
+| Your own idea | The four items in the minimum deliverable above. |
+
+---
+
+## Team setup and submission
+
+### 1. Get your team's repository
+
+Each team works in its own public GitHub repository under the official DSU Hackathon organization ([ms-cc-org](https://github.com/ms-cc-org)), made from the [starter project](https://github.com/ms-cc-org/DSU-Hackathon). Use the team repository the organizers give you, for example `DSU-Hackathon-Team-alpha`; don't work directly in the shared starter repository. [Get set up](#get-set-up) shows how to download it.
+
+Your team repository already has the starter files. Add your code, notebooks, documentation and other deliverables to it. It is public, so never commit passwords or API keys.
+
+### 2. Minimum deliverable
+
+Complete the [minimum deliverable](#minimum-deliverable). Make sure your repository contains the work needed to demonstrate it.
+
+### 3. Submit your work
+
+**Deadline: Sunday, October 18, 2026, 12:00 PM (noon) Eastern Time.**
+
+Submit by filling in the [**submission form**](https://github.com/ms-cc-org/DSU-Hackathon/issues/new?template=submission.yml) (a GitHub issue on the starter repository). One submission per team. It asks for:
+- your team name;
+- the names and GitHub usernames of all team members;
+- the URL of your team's repository;
+- the full commit SHA of the exact version you want judged.
+
+To find your final commit SHA: open your team's repository on GitHub, open the commit history, select the commit with your final submission, and copy the full SHA (40 characters). Check that this commit contains your completed minimum deliverable.
+
+### 4. After submitting
+
+The organizers save a copy of the submitted commit for judging and records. The SHA identifies the version that is judged; changes pushed after you submit are not included. Keep your repository available until the organizers confirm your submission was recorded.
+
+### 5. Final checklist
+
+- You are working in your team's repository.
+- Your team has completed the minimum deliverable.
+- All team members are listed in the submission.
+- Your repository URL is correct.
+- Your final commit SHA is correct.
+- Your submission is in before the deadline.
 
 ---
 
@@ -74,12 +137,12 @@ You need **Python 3.11 or newer** (3.12 recommended). In a terminal, run `python
 
 ### 2. Download the repo and install the packages
 
-These commands copy the repo, create a **virtual environment** (a private folder, `.venv`, that holds this project's packages so they don't clash with anything else on your computer), turn it on, and install the packages listed in `requirements.txt`.
+These commands copy your team's repository (see [Team setup and submission](#team-setup-and-submission)) to your computer, create a **virtual environment** (a private folder, `.venv`, that holds this project's packages so they don't clash with anything else on your computer), turn it on, and install the packages listed in `requirements.txt`.
 
 **macOS / Linux:**
 ```bash
-git clone https://github.com/ms-cc-org/DSU-Hackathon.git
-cd DSU-Hackathon
+git clone https://github.com/ms-cc-org/YOUR-TEAM-REPO.git
+cd YOUR-TEAM-REPO
 python3 -m venv .venv
 source .venv/bin/activate
 python -m pip install -r requirements.txt
@@ -87,14 +150,16 @@ python -m pip install -r requirements.txt
 
 **Windows (PowerShell):**
 ```powershell
-git clone https://github.com/ms-cc-org/DSU-Hackathon.git
-cd DSU-Hackathon
+git clone https://github.com/ms-cc-org/YOUR-TEAM-REPO.git
+cd YOUR-TEAM-REPO
 py -m venv .venv
 .venv\Scripts\Activate.ps1
 python -m pip install -r requirements.txt
 ```
 
-It worked if your prompt starts with `(.venv)`. Each time you open a new terminal, `cd DSU-Hackathon` and run the activate line again.
+Replace `YOUR-TEAM-REPO` with your team repository's name, for example `DSU-Hackathon-Team-alpha`, or copy the whole URL from the green **Code** button on your team's GitHub page.
+
+It worked if your prompt starts with `(.venv)`. Each time you open a new terminal, `cd` into your repo folder and run the activate line again.
 
 If something goes wrong:
 - **PowerShell says running scripts is disabled:** run `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned` once, then activate again. In Command Prompt (cmd), activate with `.venv\Scripts\activate.bat` instead.
@@ -112,7 +177,7 @@ The first time, Streamlit asks for an email address in the terminal. Press Enter
 
 From the repo root, with the venv active, run `jupyter lab` and open `notebooks/starter_notebook.ipynb` (or open it in VS Code and pick the `.venv` kernel). It loads the data, walks through the 2012 Iowa drought, and gives three questions to start from.
 
-No install? Open the notebook in Google Colab and run its first cell, which fetches the data:
+No install? Open the starter notebook in Google Colab and run its first cell, which fetches the data. Colab doesn't save to your team's repository: to keep your work, download it (**File → Download → Download .ipynb**) and add it to your team's repository on GitHub (**Add file → Upload files**).
 
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/ms-cc-org/DSU-Hackathon/blob/main/notebooks/starter_notebook.ipynb)
 
@@ -162,7 +227,9 @@ For maps, the notebook's worked example shows `px.choropleth` with `load_countie
 
 ## Test on past years
 
-Build your tool on some years and test it on years it hasn't seen (for example, build on 2000–2018 and test on 2019–2025). That's how you show it would have worked in a real season. `yield_anomaly_pct` comes from a trend fitted on all of 2000–2025, including your test years; for a strict test, refit each county's trend on your training years only.
+Build your tool on some years and test it on years it hasn't seen (for example, build on 2000–2018 and test on 2019–2025). That's how you show it would have worked in a real season. `yield_anomaly_pct` comes from a trend fitted on all of 2000–2025, including your test years; for a strict test, refit each county's trend on your training years only. `precip_anomaly_pct` is the same: its average uses all 26 years.
+
+Use only what your user would know on the day they decide. On August 1, for example, `acres_harvested` and the master's season totals (weather and drought to the end of the season) aren't known yet; build those measures from the daily and weekly panels up to your decision date.
 
 **Optional, advanced: the 2026 season.** The dataset ends in 2025, but the ACIS and Drought Monitor APIs serve 2026 data with no key. `src/build/ACIS_data_pull.py` and `USDM_data_pull.py` show the requests (the drought API's JSON uses lowercase `d0`–`d4`). USDA's monthly *Crop Production* reports give official 2026 state yield forecasts to compare against.
 
@@ -185,6 +252,7 @@ If you want a question to explore before choosing a user:
 
 ```
 app.py                          Streamlit app — run with: streamlit run app.py
+LICENSE                         MIT license for the code and docs (data credits in README)
 requirements.txt                pinned dependencies (app, notebook, modelling)
 
 data/
@@ -213,6 +281,9 @@ docs/
 ├── dataset_specification.md    technical build contract — fields, filters, formulas
 ├── technical_implementation_plan.md   scope, state/crop rationale, pipeline
 └── timeline.md                 organizer prep timeline
+
+.github/ISSUE_TEMPLATE/
+└── submission.yml              the submission form (see Team setup and submission)
 ```
 
 ## Data sources
@@ -226,6 +297,19 @@ docs/
 | [NASA MODIS MOD13Q1 v061](https://lpdaac.usgs.gov/products/mod13q1v061/) | Satellite vegetation indices (NDVI, EVI) | GEE (free) |
 
 All sources are public federal data. The master dataset and all processed files are included in the repo — no API calls needed to start working.
+
+### Credits
+
+If you publish or present results from this data, credit the sources:
+
+- **U.S. Drought Monitor:** The U.S. Drought Monitor is jointly produced by the National Drought Mitigation Center at the University of Nebraska-Lincoln, the United States Department of Agriculture, and the National Oceanic and Atmospheric Administration.
+- **USDA NASS:** This product uses the NASS API but is not endorsed or certified by NASS.
+- **NOAA ACIS:** Weather data from the Applied Climate Information System (ACIS), NOAA Regional Climate Centers.
+- **Soil:** Soil Survey Staff, Natural Resources Conservation Service, United States Department of Agriculture. Soil Survey Geographic (SSURGO) Database, via Soil Data Access.
+- **MODIS:** Didan, K. (2021). MODIS/Terra Vegetation Indices 16-Day L3 Global 250m SIN Grid V061. NASA EOSDIS Land Processes DAAC. https://doi.org/10.5067/MODIS/MOD13Q1.061
+- **County boundaries** (`data/counties.geojson`): U.S. Census Bureau county boundaries, from the [plotly/datasets](https://github.com/plotly/datasets) county GeoJSON.
+
+The code and documentation in this repo are under the [MIT License](LICENSE).
 
 ## Rebuilding the data (organizers only)
 

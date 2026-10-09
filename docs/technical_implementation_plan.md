@@ -111,7 +111,7 @@ No field outside the 21 appears in master\_dataset.csv.
 
 **The row universe.** The master contains every year from 2000 to 2025 for every county-crop pair that has at least one NASS observation in the window.  
 **Join order.** The row universe (NASS county-crop pairs × 26 years) is the left table, with county names from the backbone. NASS joins on (fips, crop, year). Weather and drought join on (fips, crop, year) after seasonal aggregation. Soil joins on fips alone and broadcasts across years. Row counts are asserted unchanged after the joins.  
-The dataset ships with 27 automated checks in build\_master.py (uniqueness, coverage, value ranges) and 26 sanity checks in validate\_sources.py (known yields, drought events, temperatures, soil geography).
+The dataset ships with 27 automated checks in build\_master.py (uniqueness, coverage, value ranges) and 27 sanity checks in validate\_sources.py (known yields, drought events, temperatures, soil geography).
 
 # 7\. Research questions the dataset can answer
 

@@ -133,7 +133,7 @@ All weather fields are aggregated over the crop's growing-season window (see "Se
 | Field | Type | Unit | Description |
 |---|---|---|---|
 | `precip_mm` | Float | Millimetres | Total precipitation during the growing season. This is the sum of daily county-mean precipitation. If Iowa corn shows about 21 instead of about 530, your data is in inches — it shouldn't be, but check. |
-| `precip_anomaly_pct` | Float | Percent | How far this season's precipitation deviates from the 26-year average for this county-crop. `(precip − mean) / mean × 100`. Positive = wetter than normal. |
+| `precip_anomaly_pct` | Float | Percent | How far this season's precipitation deviates from the 26-year average for this county-crop. `(precip − mean) / mean × 100`. Positive = wetter than normal. The average includes later years; for a strict test on past years, recompute it on your training years. |
 | `tavg_c` | Float | °C | Mean daily average temperature over the growing season. Computed as the mean of daily `(tmax + tmin) / 2`. If Iowa corn shows about 68 instead of about 20, the data is in Fahrenheit — it shouldn't be, but check. |
 | `extreme_heat_days` | Float (whole numbers) | Days | Count of days in the season where daily max temperature reached or exceeded 35°C (95°F). This is low for winter wheat in Iowa, Nebraska and Delaware because the Sep-to-Jun window rarely hits 35°C. That's a property of the window, not evidence that wheat is heat-tolerant. California wheat is the exception (12 days on average). |
 | `gdd` | Float | Degree-days | Growing Degree Days, using crop-specific base and cap temperatures. The formula is: `daily GDD = max(0, (min(tmax, T_cap) + max(tmin, T_base)) / 2 − T_base)`. Seasonal GDD is the sum. |
@@ -223,7 +223,7 @@ The master CSV is built from 4 source datasets. The daily and weekly panels are 
 |---|---|---|---|
 | `data/processed/acis/weather_daily.parquet` | Daily tmax, tmin, precipitation for every county, 1999–2025 | 2,495,086 | `fips` + `date` |
 | `data/processed/drought/drought_weekly.parquet` | Weekly D0–D4 percentages and DSCI for every county, 2000–2025 | 343,321 | `fips` + `map_date` |
-| `data/processed/nass/nass_raw.parquet` | NASS yield, harvested acres, planted acres in long format (state column is `state_abbr`) | 35,067 | `fips` + `crop` + `year` |
+| `data/processed/nass/nass_raw.parquet` | NASS yield, harvested acres, planted acres in long format: one row per value, named in `statistic` (`YIELD`, `AREA HARVESTED`, `AREA PLANTED`). State column is `state_abbr` | 35,067 | `fips` + `crop` + `year` + `statistic` |
 | `data/processed/soil/soil_county.parquet` | Static soil properties per county: `aws_100cm_mm`, `droughty_pct`, and NCCPI for each crop (`nccpi_corn`, `nccpi_soy`, `nccpi_sg`). Marin County, CA (06041) is all NaN; it has no NASS crops, so it isn't in the master. | 253 | `fips` |
 | `data/processed/modis/modis_ndvi_county.parquet` | Annual MODIS NDVI/EVI per county (extension) | 5,980 | `fips` + `year` |
 | `data/processed/irrigation/nass_irrigation.parquet` | NASS irrigated share and irrigated/non-irrigated yields (extension) | 3,716 | `fips` + `crop` + `year` |
@@ -400,7 +400,7 @@ The pipeline is in `src/build/`. Each script is self-contained, caches every API
 | `MODIS_gee_pull.py` | Google Earth Engine (extension) | `data/processed/modis/modis_ndvi_county.parquet` |
 | `NASS_irrigation_pull.py` | USDA NASS Quick Stats API (extension) | `data/processed/irrigation/nass_irrigation.parquet` |
 
-The master build passes 27 internal validation checks (`build_master.py`) and 26 sanity checks (`validate_sources.py`: known NASS yields, known drought events, known temperature ranges, and known soil geography).
+The master build passes 27 internal validation checks (`build_master.py`) and 27 sanity checks (`validate_sources.py`: known NASS yields, known drought events, known temperature ranges, and known soil geography).
 
 ---
 
