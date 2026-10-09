@@ -100,6 +100,8 @@ for st in ["IA", "NE"]:
                 drop > 0,
                 f"2011={y11['weighted_yield'].iloc[0]:.1f}, 2012={y12['weighted_yield'].iloc[0]:.1f}, drop={drop:.1f}",
             )
+        else:
+            check(f"NASS {st} {crop}: 2012 yield < 2011 (drought signal)", False, "no data for 2011 or 2012")
 
 
 # 2012 Drought check
@@ -321,29 +323,47 @@ check(
     "2012 drought should show lower growing-season precipitation.",
 )
 
+# Iowa 2012 vs 2014 drought (USDM, Jul-Aug, same window as the 2012 check above)
+ia_2014_summer = usdm[
+    (usdm["state_alpha"] == "IA")
+    & (usdm["year"] == 2014)
+    & (usdm["month"].isin([7, 8]))
+]
+ia_d2_plus_2014 = (ia_2014_summer["D2"] + ia_2014_summer["D3"] + ia_2014_summer["D4"]).mean()
+check(
+    f"CROSS Iowa Jul-Aug D2+: 2012 ({ia_d2_plus:.1f}%) > 2014 ({ia_d2_plus_2014:.1f}%)",
+    ia_d2_plus > ia_d2_plus_2014,
+    "2012 drought should show more D2+ area than 2014.",
+)
+
+
 # Combine: 2012 had less rain, more drought, and lower yields
-ia_yield_2012 = state_yields[
-    (state_yields["state_abbr"] == "IA")
-    & (state_yields["crop"] == "CORN")
-    & (state_yields["year"] == 2012)
-]["weighted_yield"].iloc[0]
-ia_yield_2014 = state_yields[
-    (state_yields["state_abbr"] == "IA")
-    & (state_yields["crop"] == "CORN")
-    & (state_yields["year"] == 2014)
-]["weighted_yield"].iloc[0]
+def ia_corn_yield(yr):
+    row = state_yields[
+        (state_yields["state_abbr"] == "IA")
+        & (state_yields["crop"] == "CORN")
+        & (state_yields["year"] == yr)
+    ]
+    return row["weighted_yield"].iloc[0] if len(row) > 0 else np.nan
+
+ia_yield_2012 = ia_corn_yield(2012)
+ia_yield_2014 = ia_corn_yield(2014)
 
 check(
     f"CROSS Iowa corn: 2012 yield ({ia_yield_2012:.0f}) < 2014 yield ({ia_yield_2014:.0f})",
     ia_yield_2012 < ia_yield_2014,
-    "Less rain + more drought --> lower yield. All 3 sources agree.",
+    "Less rain + more drought --> lower yield. A missing year shows as nan and fails.",
 )
 
 print(f"\n  2012 Iowa story: precip {ia_precip_2012:.0f}mm, "
       f"D2+ {ia_d2_plus:.0f}%, corn {ia_yield_2012:.0f} bu/acre")
 print(f"  2014 Iowa story: precip {ia_precip_2014:.0f}mm, "
-      f"D2+ low, corn {ia_yield_2014:.0f} bu/acre")
-print(f"  --> All 3 sources tell the same story.")
+      f"D2+ {ia_d2_plus_2014:.0f}%, corn {ia_yield_2014:.0f} bu/acre")
+cross_failed = sum(1 for n, st, _ in results if n.startswith("CROSS") and st == FAIL)
+if cross_failed == 0:
+    print(f"  --> All 3 sources tell the same story.")
+else:
+    print(f"  --> {cross_failed} cross-source check(s) failed; the sources disagree.")
 
 
 

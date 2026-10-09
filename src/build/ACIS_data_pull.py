@@ -5,6 +5,9 @@ from pathlib import Path
 import pandas as pd
 import requests
 
+# Repo root, so the script works from any directory
+ROOT = Path(__file__).resolve().parents[2]
+
 API_URL = "https://data.rcc-acis.org/GridData"
 
 # State abbreviation → 2-digit FIPS prefix (for filtering border counties)
@@ -26,7 +29,7 @@ PAYLOAD_ELEMS = [
     {"name": "mint", "interval": "dly", "units": "degreeC", "area_reduce": "county_mean"},
 ]
 
-raw_dir = Path("data/raw/acis")
+raw_dir = ROOT / "data/raw/acis"
 raw_dir.mkdir(parents=True, exist_ok=True)
 
 # Download
@@ -172,13 +175,13 @@ panel = (
     .sort_values(["fips", "date"])
     .reset_index(drop=True)
 )
-out_path = Path("data/processed/acis/weather_daily.parquet")
+out_path = ROOT / "data/processed/acis/weather_daily.parquet"
 out_path.parent.mkdir(parents=True, exist_ok=True)
 panel.to_parquet(out_path, index=False)
 print(f"\nSaved {len(panel):,} rows -> {out_path}")
 
 if failures:
-    fail_path = Path("data/processed/acis/acis_failures.json")
+    fail_path = ROOT / "data/processed/acis/acis_failures.json"
     with open(fail_path, "w") as f:
         json.dump(failures, f, indent=2)
     print(f"Logged {len(failures)} failures -> {fail_path}")
