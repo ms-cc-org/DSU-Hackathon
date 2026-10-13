@@ -48,12 +48,12 @@
     "resolution": "Always filter early by joining from legend (filtered by state) through mapunit and component before reaching cointerp. The state filter on legend narrows the scan to a manageable size. Per-state queries take 10-60 seconds; unfiltered queries never finish."
   },
   {
-    "issue": "One county has null soil values (incomplete SSURGO coverage)",
+    "issue": "One county has null soil values",
     "query": "All soil fields for all counties",
     "status": "Expected gap",
     "cause": "Some counties (typically in California) have large non-survey areas (national forests, military installations, tribal lands) where SSURGO has no soil mapping. The area-weighted mean returns null when the survey coverage is insufficient.",
-    "impact": "1 county has NaN for all 5 soil fields. This is expected and documented in the spec (V17).",
-    "resolution": "Do not impute. NaN means the soil data is not available for that county. The data dictionary should note which counties are affected."
+    "impact": "1 county, Marin (06041), has NaN for all 5 soil fields. It has no NASS crop records, so it is not in the master; the data dictionary notes it.",
+    "resolution": "Do not impute. NaN means the soil data is not available for that county. The data dictionary lists the affected county."
   },
   {
     "issue": "NCCPI has no sorghum model — corn is used as proxy",

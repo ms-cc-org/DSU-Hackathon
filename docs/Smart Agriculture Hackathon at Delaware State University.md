@@ -22,37 +22,35 @@ All teams would work from the same broad scenario and a curated starter data pac
 
 ## 4\. Possible Challenge Directions
 
-### WaterWise: Irrigation & Drought Decision Support
+Seven directions the data supports, each with a user and a decision. The README gives what success looks like and where to start for each.
 
-Use precipitation, temperature, drought, soil moisture, crop, or evapotranspiration data to identify water stress and help users decide when or where intervention may be needed. Beginner teams could use rules and visualization; advanced teams could add prediction or optimization.
-
-### CropGuard: Predicting Agricultural Risk
-
-Use weather, soil, crop, and/or historical yield data to identify conditions associated with poor crop outcomes. Teams might build classification or regression models, risk scores, feature-importance views, or early-warning tools.  
-Farm & Environment: Agricultural Land-Use Intelligence  
-Use land-cover, watershed, drought, agricultural census, or satellite-derived data to examine how agricultural conditions vary across space and time. Teams could identify areas vulnerable to drought or flooding, visualize land-use change, or compare agricultural risk across counties or watersheds.
-
-### AgriAdvisor: Evidence-Grounded AI Assistant
-
-Build an AI-assisted application that answers an agricultural question using provided authoritative documents and/or structured datasets. The application should show the evidence behind its output and avoid unsupported recommendations. This track should require more than simply placing a chat interface around an LLM.
+* **Crop Loss Early Warning:** a crop insurance office decides, by August 1, which Iowa and Nebraska counties to send loss inspectors to first.
+* **Drought Assistance Targeting:** a state drought program decides which counties get help first and what drought rule triggers it.
+* **Heat-Stress Advisory:** an extension crop specialist decides when to warn corn and soybean growers that heat is hurting their crop.
+* **Soil and Crop Resilience Planning:** a soil conservation office decides where long-term soil programs would cut drought losses the most.
+* **Grain Supply Outlook:** an Iowa ethanol plant decides whether to buy extra corn from outside its local area this year.
+* **Frost-Safe Planting Calendar:** an extension agronomist decides the earliest date to recommend planting frost-sensitive crops in each county.
+* **Drought Category Reality Check:** a state drought task force decides whether a drought category should trigger the same response in Iowa as in Nebraska.
+* **AgriAdvisor (optional):** an evidence-grounded assistant built on top of another direction. It must show the data behind each answer, and teams need their own AI model access.
 
 ## 5\. Shared Data Package
 
-[Technical Implementation Plan](https://docs.google.com/document/d/1Of0Q7PiHZe98_XtsNIAmb2RWNlajeuR0NGiFCUUmf_w/edit?tab=t.7xmlrtv9j0da#heading=h.5uyhverdnq4f)
+[Technical Implementation Plan](technical_implementation_plan.md)
 
 | Dataset | What We Provide | Example Variables | Source | How Teams Might Use It |
 | ----- | ----- | ----- | ----- | ----- |
-| **Weather & Climate** | County-level weather conditions summarized by year and growing season | Precipitation, precipitation anomaly, average temperature, extreme heat days, growing degree days (daily max/min temperature and precipitation in the daily panel) | NOAA | Identify heat and water stress; explore relationships between weather and crop outcomes |
-| **Drought** | County-level drought exposure and severity | Weeks in drought, maximum drought severity, % of growing season in drought | U.S. Drought Monitor | Build drought-risk indicators, compare drought exposure with crop yield, identify high-risk areas |
-| **Soil Characteristics** | Simplified agricultural soil characteristics by county | Available water storage, share of drought-vulnerable soil, crop productivity index (NCCPI) | USDA NRCS | Evaluate how soil conditions affect vulnerability to drought, excess water, or crop stress |
+| **Weather & Climate** | County-level weather conditions summarized by growing season | Precipitation, precipitation anomaly, average temperature, extreme heat days, growing degree days (daily max/min temperature and precipitation in the daily panel) | NOAA | Identify heat and water stress; explore relationships between weather and crop outcomes |
+| **Drought** | County-level drought exposure and severity | Weeks in severe drought (D2+), maximum drought severity, mean Drought Severity and Coverage Index (DSCI) | U.S. Drought Monitor | Build drought-risk indicators, compare drought exposure with crop yield, identify high-risk areas |
+| **Soil Characteristics** | Simplified agricultural soil characteristics by county | Available water storage, share of drought-vulnerable soil, crop productivity index (NCCPI) | USDA NRCS | Evaluate how soil conditions affect vulnerability to drought or crop stress |
 | **Crop & Yield** | Agricultural production and crop outcomes by county and year | Crop type, acres planted/harvested, yield per acre, yield anomaly | USDA NASS | Analyze crop performance, predict yield, or identify unusually good/bad growing seasons |
 | **Geographic Data** | Simplified county boundary file for mapping | County, state, FIPS code, geographic boundary | Census / USDA | Create risk maps, dashboards, and other geospatial applications |
-| **Satellite Vegetation (Optional)** | Vegetation-condition measures for advanced teams | Annual NDVI/EVI mean and max, NDVI anomaly, peak-greenness date | NASA / satellite data | Detect crop or vegetation stress and test whether satellite observations improve predictions |
+| **Satellite Vegetation (Optional)** | Vegetation-condition measures for advanced teams | Annual NDVI/EVI mean and max, NDVI anomaly, peak-greenness date | NASA / satellite data | Detect vegetation stress and test whether satellite observations explain yield differences (calendar-year values, so not a pre-harvest forecast) |
+| **Irrigation (Optional)** | Irrigated share of harvested acres and irrigated vs. dryland yields, mostly Nebraska 2000–2018 | Irrigated share, irrigated yield, non-irrigated yield | USDA NASS | Separate irrigation from soil and drought effects |
 | **Master Hackathon Dataset** | Beginner-friendly file combining the core datasets | County, year, crop, precipitation, extreme heat days, drought severity, soil water capacity, yield, yield anomaly | Derived from above sources | Begin analysis immediately without having to join multiple datasets |
 
 **Supporting materials:** The package will also include a data dictionary, source documentation, starter notebook, county boundary file, and example code for loading, visualizing, and mapping the data. Starter materials will demonstrate how to work with the datasets without providing a solution to the challenge.
 
-**Possible applications:** Drought-risk dashboards, irrigation decision-support tools, crop-yield prediction, agricultural resilience indices, geographic risk maps, crop-stress early-warning systems, or evidence-grounded AI agricultural assistants.
+**Possible applications:** Drought-risk dashboards, crop-yield prediction, agricultural resilience indices, geographic risk maps, crop-stress early-warning systems, or evidence-grounded AI agricultural assistants.
 
 **Common framework:** **Environmental Exposure → Agricultural Vulnerability → Crop Impact → Decision Support**
 
@@ -74,7 +72,7 @@ The event should support students with different levels of experience. Teams sho
 | :---- | :---- |
 | Minimum viable submission | Load and use provided data, perform meaningful analysis, visualize results, and provide an interactive interface or useful decision output.  |
 | Competitive submission | Add prediction, machine learning, geospatial analysis, external data integration, or another technically substantive capability.  |
-| Advanced submission	 | Add AI assistance, model evaluation or explainability, real-time APIs, sophisticated geospatial analysis, optimization, or another original capability. |
+| Advanced submission | Add AI assistance, model evaluation or explainability, real-time APIs, sophisticated geospatial analysis, optimization, or another original capability. |
 
 A Streamlit, Gradio, or similar lightweight application would be an appropriate target. A well-developed interactive Jupyter notebook could be accepted for less experienced teams, but the primary goal should be a usable prototype rather than a notebook containing analysis alone.
 
@@ -102,7 +100,7 @@ Judges should be instructed that technical complexity alone does not determine t
 
 | Time | Activity | Notes  |
 | :---- | :---- | :---- |
-| Saturday morning-   | Registration, welcome, challenge reveal, dataset overview, team formation, and brief technical orientation. | Registration opens at 8:00am  Hackathon begins at 9:00am  |
+| Saturday morning | Registration, welcome, challenge reveal, dataset overview, team formation, and brief technical orientation. | Registration opens at 8:00am  Hackathon begins at 9:00am  |
 | Late morning–afternoon | Problem definition and initial build. |  |
 | Saturday afternoon | Mentor checkpoint \#1: teams identify their user, problem, proposed solution, and data. |  |
 | Saturday evening | Mentor checkpoint \#2: teams demonstrate that data is loaded and a basic analysis or prototype is functioning. |  |

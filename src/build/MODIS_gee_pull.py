@@ -1,21 +1,28 @@
+import os
 import time
 from pathlib import Path
 
 import ee
 import pandas as pd
+from dotenv import load_dotenv
 
-ee.Initialize()
+# Repo root, so the script works from any directory
+ROOT = Path(__file__).resolve().parents[2]
+
+# Earth Engine needs a Google Cloud project ID: set EE_PROJECT in .env
+load_dotenv(ROOT / ".env")
+ee.Initialize(project=os.environ["EE_PROJECT"])
 
 STATE_FIPS_TO_ALPHA = {"06": "CA", "10": "DE", "19": "IA", "31": "NE"}
 SCALE_FACTOR = 0.0001  # NDVI/EVI are stored as int * 10000
 
-RAW_DIR = Path("data/raw/modis")
-PROCESSED_DIR = Path("data/processed/modis")
+RAW_DIR = ROOT / "data/raw/modis"
+PROCESSED_DIR = ROOT / "data/processed/modis"
 RAW_DIR.mkdir(parents=True, exist_ok=True)
 PROCESSED_DIR.mkdir(parents=True, exist_ok=True)
 
 # Load target counties from master dataset
-master = pd.read_parquet("data/master_dataset.parquet")
+master = pd.read_parquet(ROOT / "data/master_dataset.parquet")
 target_fips = sorted(master["fips"].unique().tolist())
 fips_to_state = (master.drop_duplicates("fips").set_index("fips")["state_alpha"].to_dict())
 fips_to_county = (master.drop_duplicates("fips").set_index("fips")["county_name"].to_dict())

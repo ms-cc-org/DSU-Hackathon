@@ -9,7 +9,7 @@
   },
   {
     "issue": "30 null temperature values in California coastal counties",
-    "query": "GridData for CA, grid=1, scattered dates in 2005-2019",
+    "query": "GridData for CA, grid=1, scattered dates in 2005-2025",
     "status": "Expected gap",
     "cause": "Grid 1 (NRCC Interpolated) has rare null values at coastal grid cells where land-sea interpolation fails. Affected counties: 06023 (Humboldt), 06037 (Los Angeles), 06045 (Mendocino), 06079 (San Luis Obispo), 06083 (Santa Barbara). All are coastal.",
     "impact": "30 out of 2,495,086 daily records have null tmax/tmin. This is negligible for seasonal means (< 0.001% of data). A single missing day in a 153-day season shifts the mean by less than measurement noise.",

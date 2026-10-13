@@ -5,6 +5,9 @@ from pathlib import Path
 import pandas as pd
 import requests
 
+# Repo root, so the script works from any directory
+ROOT = Path(__file__).resolve().parents[2]
+
 API_URL = (
     "https://usdmdataservices.unl.edu/api/CountyStatistics/"
     "GetDroughtSeverityStatisticsByAreaPercent"
@@ -14,7 +17,7 @@ STATES = ["CA", "NE", "IA", "DE"]
 YEAR_START = 2000
 YEAR_END = 2025
 
-raw_dir = Path("data/raw/usdm")
+raw_dir = ROOT / "data/raw/usdm"
 raw_dir.mkdir(parents=True, exist_ok=True)
 
 # Download 
@@ -176,13 +179,13 @@ print(f"\nWeeks per county: min={weeks_per_county.min()}, "
       f"max={weeks_per_county.max()}, median={weeks_per_county.median():.0f}")
 
 # Save
-out_path = Path("data/processed/drought/drought_weekly.parquet")
+out_path = ROOT / "data/processed/drought/drought_weekly.parquet"
 out_path.parent.mkdir(parents=True, exist_ok=True)
 panel.to_parquet(out_path, index=False)
 print(f"\nSaved {len(panel):,} rows --> {out_path}")
 
 if failures:
-    fail_path = Path("data/processed/drought/usdm_failures.json")
+    fail_path = ROOT / "data/processed/drought/usdm_failures.json"
     with open(fail_path, "w") as f:
         json.dump(failures, f, indent=2)
     print(f"Logged {len(failures)} failures --> {fail_path}")
