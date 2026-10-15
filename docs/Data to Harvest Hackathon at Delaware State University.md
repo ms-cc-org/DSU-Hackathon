@@ -1,4 +1,4 @@
-# Smart Agriculture Hackathon at Delaware State University
+# Data to Harvest: AI for Agricultural Resilience Hackathon at Delaware State University
 
 # Draft Concept and Challenge Structure
 
@@ -12,7 +12,7 @@ The event should be organized around one coherent real-world problem rather than
 
 ## 2\. Recommended Theme
 
-**Smart Agriculture: Water, Drought & Crop Resilience**  
+**Data to Harvest: AI for Agricultural Resilience Hackathon**  
 Agricultural producers and researchers increasingly make decisions under uncertainty about rainfall, drought, temperature, soil conditions, water availability, crop performance, and changing land conditions. The challenge asks students to use environmental and agricultural data to build a tool that helps an agricultural stakeholder understand risk and make a better-informed decision.
 
 ## 3\. Core Challenge Statement

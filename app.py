@@ -14,11 +14,11 @@ df = get_data()
 
 # Page config
 st.set_page_config(
-    page_title="Smart Agriculture Hackathon",
+    page_title="Data to Harvest: AI for Agricultural Resilience Hackathon",
     page_icon=":ear_of_corn:",
     layout="wide",
 )
-st.title("Smart Agriculture: Water, Drought & Crop Resilience")
+st.title("Data to Harvest: AI for Agricultural Resilience Hackathon")
 st.caption("DSU Hackathon, October 17-18, 2026 * One row = one county, one crop, one year")
 
 
