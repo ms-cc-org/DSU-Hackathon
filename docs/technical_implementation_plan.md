@@ -1,6 +1,6 @@
 # Technical Implementation Plan
 
-## DSU Smart Agriculture Hackathon, October 17 to 18, 2026
+## Data to Harvest: AI for Agricultural Resilience Hackathon, Delaware State University, October 17 to 18, 2026
 
 # 1\. Purpose
 

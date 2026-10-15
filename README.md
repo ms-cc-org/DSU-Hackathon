@@ -1,4 +1,4 @@
-# DSU Smart Agriculture Hackathon
+# Data to Harvest: AI for Agricultural Resilience Hackathon
 
 **October 17–18, 2026 | Delaware State University | 24 hours**
 
@@ -277,7 +277,7 @@ notebooks/
 └── starter_notebook.ipynb      load the data, worked example, places to start
 
 docs/
-├── Smart Agriculture Hackathon at Delaware State University.md   event concept, judging rubric
+├── Data to Harvest Hackathon at Delaware State University.md   event concept, judging rubric
 ├── dataset_specification.md    technical build contract — fields, filters, formulas
 ├── technical_implementation_plan.md   scope, state/crop rationale, pipeline
 └── timeline.md                 organizer prep timeline

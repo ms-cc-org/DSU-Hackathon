@@ -1,6 +1,6 @@
 # Data Dictionary
 
-**DSU Smart Agriculture Hackathon, October 17–18, 2026.**
+**Data to Harvest: AI for Agricultural Resilience Hackathon, Delaware State University, October 17–18, 2026.**
 Master dataset version 1. Rebuilt October 5, 2026.
 
 ---
